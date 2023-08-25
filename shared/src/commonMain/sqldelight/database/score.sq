@@ -1,0 +1,15 @@
+CREATE TABLE scoreEntity (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    score INTEGER NOT NULL
+);
+
+getAllScores:
+SELECT *
+FROM scoreEntity;
+
+insertScore:
+INSERT OR REPLACE
+INTO scoreEntity(
+    id,
+    score
+) VALUES (?, ?);
