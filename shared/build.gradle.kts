@@ -64,6 +64,8 @@ kotlin {
                 implementation(libs.voyager.tabNavigator)
                 implementation(libs.voyager.navigator)
 
+                implementation(libs.koin.core)
+
                 api(libs.moko.resources)
                 api(libs.moko.resourcesCompose)
             }
@@ -80,6 +82,7 @@ kotlin {
                 implementation(libs.appCompat)
                 implementation(libs.compose.activity)
                 implementation(libs.ktor.android)
+                implementation(libs.koin.android)
             }
         }
         val iosMain by getting {

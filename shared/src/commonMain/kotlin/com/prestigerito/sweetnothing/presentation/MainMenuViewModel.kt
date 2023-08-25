@@ -6,10 +6,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.get
 
-class MainMenuViewModel(
-    private val scoreDataSource: ScoreDataSource,
-) : ViewModel() {
+class MainMenuViewModel : ViewModel(), KoinComponent {
+    private val scoreDataSource: ScoreDataSource = get()
     private val _state = MutableStateFlow(MainMenuState())
     val state = combine(
         _state,

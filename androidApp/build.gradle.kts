@@ -49,4 +49,6 @@ dependencies {
     implementation(libs.compose.tooling)
     implementation(libs.compose.tooling.preview)
     implementation(libs.compose.activity)
+
+    implementation(libs.koin.android)
 }
