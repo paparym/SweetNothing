@@ -2,6 +2,7 @@
 buildscript {
     dependencies {
         classpath(libs.sqlDelight.gradle)
+        classpath(libs.moko.resourcesGradle)
     }
 }
 

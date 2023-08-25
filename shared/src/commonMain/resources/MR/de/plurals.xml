@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<resources>
+    <plural name="chars_count">
+        <item quantity="zero">ein uno</item>
+        <item quantity="one">%d ein</item>
+        <item quantity="two">%d zwei</item>
+        <item quantity="other">%d drei</item>
+    </plural>
+</resources>

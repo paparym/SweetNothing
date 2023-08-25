@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlinX.serialization.plugin)
     alias(libs.plugins.compose)
+    id(libs.plugins.mokoResources.get().pluginId)
     id(libs.plugins.sqlDelight.plugin.get().pluginId)
 }
 
@@ -19,15 +20,17 @@ kotlin {
             }
         }
     }
-    
+
     listOf(
         iosX64(),
         iosArm64(),
-        iosSimulatorArm64()
+        iosSimulatorArm64(),
     ).forEach {
         it.binaries.framework {
             baseName = "shared"
-            isStatic = true
+//            isStatic = true
+//            export("dev.icerock.moko:resources:0.23.0")
+//            export("dev.icerock.moko:graphics:0.9.0") // toUIColor here
         }
     }
 
@@ -60,11 +63,15 @@ kotlin {
                 implementation(libs.voyager.core)
                 implementation(libs.voyager.tabNavigator)
                 implementation(libs.voyager.navigator)
+
+                api(libs.moko.resources)
+                api(libs.moko.resourcesCompose)
             }
         }
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
+                implementation(libs.moko.resourcesTest)
             }
         }
         val androidMain by getting {
@@ -101,4 +108,8 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+}
+
+multiplatformResources {
+    multiplatformResourcesPackage = "com.prestigerito.sweetnothing" // required
 }
