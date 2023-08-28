@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -32,6 +31,8 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import com.prestigerito.sweetnothing.MR
+import com.prestigerito.sweetnothing.ui.menu.AnimatedHero
 import kotlin.math.roundToInt
 
 @Composable
@@ -74,7 +75,6 @@ fun GameScreen() {
     }
 }
 
-
 @Composable
 private fun DraggableHero(
     modifier: Modifier = Modifier,
@@ -82,22 +82,44 @@ private fun DraggableHero(
 ) {
     var offsetX by remember { mutableStateOf(0f) }
     var offsetY by remember { mutableStateOf(0f) }
+    var direction by remember { mutableStateOf(HeroDirection.RIGHT) }
 
     Box(
         modifier
             .offset { IntOffset(offsetX.roundToInt(), offsetY.roundToInt()) }
-            .background(MaterialTheme.colorScheme.primary)
-            .size(50.dp)
             .pointerInput(Unit) {
                 detectDragGestures { change, dragAmount ->
                     change.consume()
+                    direction = if (dragAmount.x < 0f) HeroDirection.LEFT else HeroDirection.RIGHT
                     offsetX += dragAmount.x
                     offsetY += dragAmount.y
                 }
             }.onGloballyPositioned {
                 heroCoordinates(it.boundsInRoot())
             },
-    )
+    ) {
+        AnimatedHero(
+            modifier = Modifier
+                .graphicsLayer {
+                    rotationY = when (direction) {
+                        HeroDirection.LEFT -> 180f
+                        HeroDirection.RIGHT -> 0f
+                    }
+                }
+                .size(100.dp),
+            assets = listOf(
+                MR.images.walk_right_0,
+                MR.images.walk_right_1,
+                MR.images.walk_right_2,
+                MR.images.walk_right_3,
+            ),
+        )
+    }
+}
+
+enum class HeroDirection {
+    LEFT,
+    RIGHT,
 }
 
 @Composable
@@ -145,15 +167,15 @@ fun areComposablesOverlapping(
 ): Boolean {
     // Check for horizontal overlap
     val horizontalOverlap = (
-            composable1Bounds.left <= composable2Bounds.right &&
-                    composable1Bounds.right >= composable2Bounds.left
-            )
+        composable1Bounds.left <= composable2Bounds.right &&
+            composable1Bounds.right >= composable2Bounds.left
+        )
 
     // Check for vertical overlap
     val verticalOverlap = (
-            composable1Bounds.top <= composable2Bounds.bottom &&
-                    composable1Bounds.bottom >= composable2Bounds.top
-            )
+        composable1Bounds.top <= composable2Bounds.bottom &&
+            composable1Bounds.bottom >= composable2Bounds.top
+        )
 
     // Return true if both horizontal and vertical overlap is true
     return horizontalOverlap && verticalOverlap

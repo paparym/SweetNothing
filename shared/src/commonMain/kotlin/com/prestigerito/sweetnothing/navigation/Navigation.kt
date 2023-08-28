@@ -1,7 +1,6 @@
 package com.prestigerito.sweetnothing.navigation
 
 import androidx.compose.runtime.Composable
-import cafe.adriel.voyager.core.registry.ScreenProvider
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
@@ -23,9 +22,10 @@ object MainScreenNav : Screen {
             },
         )
         MainMenu(
-            text = "Go next",
             viewModel = viewModel,
-            onGoNextClick = { navigator.push(GameScreenNav) },
+            onPlayClicked = { navigator.push(GameScreenNav) },
+            onSelectLevelClicked = { navigator.push(GameScreenNav) },
+            onHighScoresClicked = { navigator.push(GameScreenNav) },
         )
     }
 }
@@ -35,8 +35,4 @@ object GameScreenNav : Screen {
     override fun Content() {
         GameScreen()
     }
-}
-
-sealed class SharedScreen : ScreenProvider {
-    data class PdpDetails(val text: String) : SharedScreen()
 }
