@@ -1,11 +1,16 @@
 package com.prestigerito.sweetnothing.ui.menu
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
@@ -21,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.prestigerito.sweetnothing.MR
 import com.prestigerito.sweetnothing.presentation.MainMenuViewModel
@@ -30,6 +36,7 @@ import dev.icerock.moko.resources.ImageResource
 import dev.icerock.moko.resources.compose.painterResource
 import dev.icerock.moko.resources.compose.stringResource
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun MainMenu(
@@ -94,6 +101,55 @@ fun AnimatedHero(
     Image(
         modifier = modifier,
         painter = painterResource(currentResource),
+        contentDescription = null,
+        contentScale = ContentScale.FillBounds,
+    )
+}
+
+@Composable
+fun EndlessBackground(
+    asset: ImageResource,
+    screenHeightPx: Float,
+) {
+    val offset = remember { Animatable(0f) }
+    val offset2 = remember { Animatable(0f) }
+    val animation = tween<Float>(durationMillis = 2000, easing = LinearEasing)
+    LaunchedEffect(screenHeightPx) {
+        launch {
+            offset.animateTo(
+                targetValue = screenHeightPx,
+                animationSpec = infiniteRepeatable(
+                    animation = animation,
+                ),
+            )
+        }
+        launch {
+            offset2.animateTo(
+                targetValue = screenHeightPx,
+                animationSpec = infiniteRepeatable(
+                    animation = animation,
+                ),
+            )
+        }
+    }
+    Image(
+        modifier = Modifier
+            .fillMaxSize()
+            .offset {
+                IntOffset(
+                    y = -(screenHeightPx.toInt()) + (offset2.value.toInt()),
+                    x = 0,
+                )
+            },
+        painter = painterResource(asset),
+        contentDescription = null,
+        contentScale = ContentScale.FillBounds,
+    )
+    Image(
+        modifier = Modifier
+            .fillMaxSize()
+            .offset { IntOffset(y = offset.value.toInt(), x = 0) },
+        painter = painterResource(asset),
         contentDescription = null,
         contentScale = ContentScale.FillBounds,
     )

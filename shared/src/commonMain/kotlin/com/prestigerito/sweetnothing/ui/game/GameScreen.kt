@@ -2,6 +2,7 @@ package com.prestigerito.sweetnothing.ui.game
 
 import androidx.compose.animation.animateColor
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.VectorConverter
@@ -39,6 +40,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.prestigerito.sweetnothing.MR
 import com.prestigerito.sweetnothing.ui.menu.AnimatedHero
+import com.prestigerito.sweetnothing.ui.menu.EndlessBackground
 import dev.icerock.moko.resources.compose.painterResource
 import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
@@ -82,6 +84,10 @@ fun GameScreen() {
             }
             .background(fullBackground),
     ) {
+        EndlessBackground(
+            asset = MR.images.symbol_bg,
+            screenHeightPx = screenHeightPx,
+        )
         Image(
             modifier = Modifier.fillMaxSize(),
             painter = painterResource(MR.images.white_bg),
@@ -183,7 +189,6 @@ fun FallingCoin(
     val density = LocalDensity.current
     val coinSizeDp = 50.dp
     val coinSizePx = with(density) { coinSizeDp.toPx() }
-    var xState by remember { mutableStateOf(XPositionUpdate.TO_BE_UPDATED) }
 
     val y by infiniteTransition.animateValue(
         initialValue = -coinSizePx,
@@ -194,12 +199,14 @@ fun FallingCoin(
         ),
         typeConverter = Float.VectorConverter,
     )
-    var x by remember { mutableStateOf((200).toFloat()) }
+    val x = remember { Animatable(0f) }
 
-    LaunchedEffect(screenWidthPx) {
-        while (true) {
-            x = (0..screenWidthPx.toInt()).random().toFloat()
-            println("--> updated")
+    LaunchedEffect(screenWidthPx, coinSizePx) {
+        while (coinSizePx > 0 && screenWidthPx > 0) {
+            x.animateTo(
+                targetValue = (0..(screenWidthPx.toInt() - coinSizePx.toInt())).random().toFloat(),
+                animationSpec = tween(500),
+            )
             delay(2000)
         }
     }
@@ -209,17 +216,13 @@ fun FallingCoin(
             .size(50.dp)
             .graphicsLayer {
                 translationY = y
-                translationX = x
+                translationX = x.value
             }
             .onGloballyPositioned { coordinates ->
                 coinCoordinates(coordinates.boundsInRoot())
             },
         assets = coinAssets,
     )
-}
-
-enum class XPositionUpdate {
-    TO_BE_UPDATED, LOCK
 }
 
 @Composable
