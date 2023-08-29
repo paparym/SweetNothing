@@ -9,13 +9,17 @@ import androidx.compose.animation.core.animateValue
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -26,13 +30,17 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.prestigerito.sweetnothing.MR
 import com.prestigerito.sweetnothing.ui.menu.AnimatedHero
+import dev.icerock.moko.resources.compose.painterResource
+import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
 @Composable
@@ -42,15 +50,29 @@ fun GameScreen() {
 
     var rainCoordinates by remember { mutableStateOf(Rect.Zero) }
     var heroCoordinates by remember { mutableStateOf(Rect.Zero) }
+    var coinCoordinates by remember { mutableStateOf(Rect.Zero) }
 
-    val isCollision = areComposablesOverlapping(
+    var score by remember { mutableStateOf(0) }
+
+    val isCollisionHeroEnemy = areComposablesOverlapping(
         composable1Bounds = rainCoordinates,
+        composable2Bounds = heroCoordinates,
+    )
+    val isCollisionHeroCoin = areComposablesOverlapping(
+        composable1Bounds = coinCoordinates,
         composable2Bounds = heroCoordinates,
     )
 
     val fullBackground by animateColorAsState(
-        targetValue = if (isCollision) Color.Red else Color.White,
+        targetValue = if (isCollisionHeroEnemy) Color.Red else Color.White,
     )
+
+    LaunchedEffect(isCollisionHeroCoin) {
+        if (isCollisionHeroCoin) {
+            score++
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -60,6 +82,24 @@ fun GameScreen() {
             }
             .background(fullBackground),
     ) {
+        Image(
+            modifier = Modifier.fillMaxSize(),
+            painter = painterResource(MR.images.white_bg),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+        )
+        Text(
+            modifier = Modifier.align(Alignment.TopEnd),
+            text = "Score: $score",
+        )
+        FallingCoin(
+            modifier = Modifier,
+            screenHeightPx = screenHeightPx,
+            screenWidthPx = screenWidthPx,
+            coinCoordinates = { coordinates ->
+                coinCoordinates = coordinates
+            },
+        )
         FallingRain(
             modifier = Modifier.align(Alignment.TopCenter),
             screenHeightPx = screenHeightPx,
@@ -67,6 +107,7 @@ fun GameScreen() {
                 rainCoordinates = coordinates
             },
         )
+
         DraggableHero(
             heroCoordinates = { coordinates ->
                 heroCoordinates = coordinates
@@ -80,39 +121,48 @@ private fun DraggableHero(
     modifier: Modifier = Modifier,
     heroCoordinates: (Rect) -> Unit,
 ) {
+    val density = LocalDensity.current
     var offsetX by remember { mutableStateOf(0f) }
-    var offsetY by remember { mutableStateOf(0f) }
     var direction by remember { mutableStateOf(HeroDirection.RIGHT) }
+    val heroSize by remember { mutableStateOf(100.dp) }
+    var endBound by remember { mutableStateOf(0f) }
 
     Box(
-        modifier
-            .offset { IntOffset(offsetX.roundToInt(), offsetY.roundToInt()) }
+        modifier = modifier
+            .onSizeChanged { endBound = it.width.toFloat() - with(density) { heroSize.toPx() } }
+            .fillMaxSize()
+            .offset { IntOffset(offsetX.roundToInt(), 0) }
+            .padding(bottom = 50.dp)
             .pointerInput(Unit) {
                 detectDragGestures { change, dragAmount ->
                     change.consume()
-                    direction = if (dragAmount.x < 0f) HeroDirection.LEFT else HeroDirection.RIGHT
-                    offsetX += dragAmount.x
-                    offsetY += dragAmount.y
+                    direction = when {
+                        dragAmount.x < -2f -> HeroDirection.LEFT
+                        dragAmount.x > 2f -> HeroDirection.RIGHT
+                        else -> direction
+                    }
+                    val dragWithBounds = (offsetX + dragAmount.x).coerceIn(
+                        minimumValue = 0f,
+                        maximumValue = endBound,
+                    )
+                    offsetX = dragWithBounds
                 }
-            }.onGloballyPositioned {
-                heroCoordinates(it.boundsInRoot())
             },
+        contentAlignment = Alignment.BottomStart,
     ) {
         AnimatedHero(
             modifier = Modifier
+                .onGloballyPositioned {
+                    heroCoordinates(it.boundsInRoot())
+                }
                 .graphicsLayer {
                     rotationY = when (direction) {
                         HeroDirection.LEFT -> 180f
                         HeroDirection.RIGHT -> 0f
                     }
                 }
-                .size(100.dp),
-            assets = listOf(
-                MR.images.walk_right_0,
-                MR.images.walk_right_1,
-                MR.images.walk_right_2,
-                MR.images.walk_right_3,
-            ),
+                .size(heroSize),
+            assets = mainHeroAssets,
         )
     }
 }
@@ -120,6 +170,56 @@ private fun DraggableHero(
 enum class HeroDirection {
     LEFT,
     RIGHT,
+}
+
+@Composable
+fun FallingCoin(
+    modifier: Modifier = Modifier,
+    screenHeightPx: Float,
+    screenWidthPx: Float,
+    coinCoordinates: (Rect) -> Unit,
+) {
+    val infiniteTransition = rememberInfiniteTransition()
+    val density = LocalDensity.current
+    val coinSizeDp = 50.dp
+    val coinSizePx = with(density) { coinSizeDp.toPx() }
+    var xState by remember { mutableStateOf(XPositionUpdate.TO_BE_UPDATED) }
+
+    val y by infiniteTransition.animateValue(
+        initialValue = -coinSizePx,
+        targetValue = screenHeightPx,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart,
+        ),
+        typeConverter = Float.VectorConverter,
+    )
+    var x by remember { mutableStateOf((200).toFloat()) }
+
+    LaunchedEffect(screenWidthPx) {
+        while (true) {
+            x = (0..screenWidthPx.toInt()).random().toFloat()
+            println("--> updated")
+            delay(2000)
+        }
+    }
+
+    AnimatedHero(
+        modifier = modifier
+            .size(50.dp)
+            .graphicsLayer {
+                translationY = y
+                translationX = x
+            }
+            .onGloballyPositioned { coordinates ->
+                coinCoordinates(coordinates.boundsInRoot())
+            },
+        assets = coinAssets,
+    )
+}
+
+enum class XPositionUpdate {
+    TO_BE_UPDATED, LOCK
 }
 
 @Composable
