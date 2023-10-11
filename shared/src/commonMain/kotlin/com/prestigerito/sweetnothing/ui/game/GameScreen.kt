@@ -14,10 +14,14 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,17 +43,13 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.prestigerito.sweetnothing.MR
-import com.prestigerito.sweetnothing.ui.menu.AnimatedHero
-import com.prestigerito.sweetnothing.ui.menu.EndlessBackground
+import com.prestigerito.sweetnothing.ui.menu.AnimatedItem
+import com.prestigerito.sweetnothing.ui.menu.AnimationType
 import dev.icerock.moko.resources.compose.painterResource
-import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
 @Composable
 fun GameScreen() {
-    var screenHeightPx by remember { mutableStateOf(0f) }
-    var screenWidthPx by remember { mutableStateOf(0f) }
-
     var rainCoordinates by remember { mutableStateOf(Rect.Zero) }
     var heroCoordinates by remember { mutableStateOf(Rect.Zero) }
     var coinCoordinates by remember { mutableStateOf(Rect.Zero) }
@@ -66,7 +66,11 @@ fun GameScreen() {
     )
 
     val fullBackground by animateColorAsState(
-        targetValue = if (isCollisionHeroEnemy) Color.Red else Color.White,
+        targetValue = when {
+            isCollisionHeroEnemy -> Color.Red
+            isCollisionHeroCoin -> Color.Yellow
+            else -> Color.White
+        },
     )
 
     LaunchedEffect(isCollisionHeroCoin) {
@@ -75,44 +79,32 @@ fun GameScreen() {
         }
     }
 
-    Box(
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
-            .onSizeChanged {
-                screenHeightPx = it.height.toFloat()
-                screenWidthPx = it.width.toFloat()
-            }
-            .background(fullBackground),
+            .background(fullBackground)
+            .windowInsetsPadding(WindowInsets.systemBars),
     ) {
-        EndlessBackground(
-            asset = MR.images.symbol_bg,
-            screenHeightPx = screenHeightPx,
-        )
         Image(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.systemBars),
             painter = painterResource(MR.images.white_bg),
             contentDescription = null,
-            contentScale = ContentScale.Crop,
+            contentScale = ContentScale.FillHeight,
         )
         Text(
             modifier = Modifier.align(Alignment.TopEnd),
             text = "Score: $score",
         )
-        FallingCoin(
-            modifier = Modifier,
-            screenHeightPx = screenHeightPx,
-            screenWidthPx = screenWidthPx,
-            coinCoordinates = { coordinates ->
-                coinCoordinates = coordinates
-            },
-        )
-        FallingRain(
-            modifier = Modifier.align(Alignment.TopCenter),
-            screenHeightPx = screenHeightPx,
-            rainCoordinates = { coordinates ->
-                rainCoordinates = coordinates
-            },
-        )
+        repeat(5) {
+            FallingCoin(
+                modifier = Modifier,
+                screenHeightPx = constraints.maxHeight.toFloat(),
+                screenWidthPx = constraints.maxWidth.toFloat(),
+                coinCoordinates = { coordinates ->
+                    coinCoordinates = coordinates
+                },
+            )
+        }
 
         DraggableHero(
             heroCoordinates = { coordinates ->
@@ -156,7 +148,7 @@ private fun DraggableHero(
             },
         contentAlignment = Alignment.BottomStart,
     ) {
-        AnimatedHero(
+        AnimatedItem(
             modifier = Modifier
                 .onGloballyPositioned {
                     heroCoordinates(it.boundsInRoot())
@@ -169,6 +161,7 @@ private fun DraggableHero(
                 }
                 .size(heroSize),
             assets = mainHeroAssets,
+            animationType = AnimationType.NO_ANIMATION,
         )
     }
 }
@@ -185,43 +178,47 @@ fun FallingCoin(
     screenWidthPx: Float,
     coinCoordinates: (Rect) -> Unit,
 ) {
-    val infiniteTransition = rememberInfiniteTransition()
     val density = LocalDensity.current
     val coinSizeDp = 50.dp
     val coinSizePx = with(density) { coinSizeDp.toPx() }
 
-    val y by infiniteTransition.animateValue(
-        initialValue = -coinSizePx,
-        targetValue = screenHeightPx,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart,
-        ),
-        typeConverter = Float.VectorConverter,
-    )
-    val x = remember { Animatable(0f) }
+    val yAnimation = remember {
+        Animatable(-coinSizePx)
+    }
 
-    LaunchedEffect(screenWidthPx, coinSizePx) {
-        while (coinSizePx > 0 && screenWidthPx > 0) {
-            x.animateTo(
-                targetValue = (0..(screenWidthPx.toInt() - coinSizePx.toInt())).random().toFloat(),
-                animationSpec = tween(500),
+    fun randomHorizontalPosition() =
+        (0..(screenWidthPx.toInt() - coinSizePx.toInt())).random().toFloat()
+
+    val xAnimation = remember {
+        Animatable(randomHorizontalPosition())
+    }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            yAnimation.animateTo(
+                targetValue = screenHeightPx,
+                animationSpec = tween(
+                    durationMillis = 2000,
+                    easing = LinearEasing
+                )
             )
-            delay(2000)
+            xAnimation.snapTo(targetValue = randomHorizontalPosition())
+            yAnimation.snapTo(targetValue = -coinSizePx)
         }
     }
 
-    AnimatedHero(
+    AnimatedItem(
         modifier = modifier
             .size(50.dp)
             .graphicsLayer {
-                translationY = y
-                translationX = x.value
+                translationY = yAnimation.value
+                translationX = xAnimation.value
             }
             .onGloballyPositioned { coordinates ->
                 coinCoordinates(coordinates.boundsInRoot())
             },
         assets = coinAssets,
+        animationType = AnimationType.Y_AXIS_ROTATION,
     )
 }
 
@@ -270,15 +267,15 @@ fun areComposablesOverlapping(
 ): Boolean {
     // Check for horizontal overlap
     val horizontalOverlap = (
-        composable1Bounds.left <= composable2Bounds.right &&
-            composable1Bounds.right >= composable2Bounds.left
-        )
+            composable1Bounds.left <= composable2Bounds.right &&
+                    composable1Bounds.right >= composable2Bounds.left
+            )
 
     // Check for vertical overlap
     val verticalOverlap = (
-        composable1Bounds.top <= composable2Bounds.bottom &&
-            composable1Bounds.bottom >= composable2Bounds.top
-        )
+            composable1Bounds.top <= composable2Bounds.bottom &&
+                    composable1Bounds.bottom >= composable2Bounds.top
+            )
 
     // Return true if both horizontal and vertical overlap is true
     return horizontalOverlap && verticalOverlap

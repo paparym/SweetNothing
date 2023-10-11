@@ -2,7 +2,7 @@ package com.prestigerito.sweetnothing
 
 import androidx.compose.runtime.Composable
 import cafe.adriel.voyager.navigator.Navigator
-import com.prestigerito.sweetnothing.navigation.GameScreenNav
+import com.prestigerito.sweetnothing.navigation.MainScreenNav
 import com.prestigerito.sweetnothing.ui.AppTheme
 
 @Composable
@@ -14,6 +14,6 @@ fun AppScreen(
         darkTheme = darkTheme,
         dynamicColor = dynamicColor,
     ) {
-        Navigator(GameScreenNav)
+        Navigator(MainScreenNav)
     }
 }
