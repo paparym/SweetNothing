@@ -94,6 +94,11 @@ fun MainMenu(
 }
 
 @Composable
+fun AnimatedItems() {
+
+}
+
+@Composable
 fun AnimatedItem(
     modifier: Modifier = Modifier,
     assets: List<ImageResource>,

@@ -25,7 +25,10 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -48,11 +51,29 @@ import com.prestigerito.sweetnothing.ui.menu.AnimationType
 import dev.icerock.moko.resources.compose.painterResource
 import kotlin.math.roundToInt
 
+@Stable
+data class FallingItem(
+    var coordinates: State<Rect> = mutableStateOf(Rect.Zero),
+    val tag: Any = "",
+)
+
 @Composable
 fun GameScreen() {
+    val someState = rememberItemFallState()
+
+
     var rainCoordinates by remember { mutableStateOf(Rect.Zero) }
     var heroCoordinates by remember { mutableStateOf(Rect.Zero) }
-    var coinCoordinates by remember { mutableStateOf(Rect.Zero) }
+    val fallingItems = remember {
+        mutableStateListOf(
+            FallingItem(),
+            FallingItem(),
+            FallingItem(),
+            FallingItem(),
+            FallingItem(),
+            FallingItem(),
+        )
+    }
 
     var score by remember { mutableStateOf(0) }
 
@@ -60,8 +81,9 @@ fun GameScreen() {
         composable1Bounds = rainCoordinates,
         composable2Bounds = heroCoordinates,
     )
+    // TODO: update
     val isCollisionHeroCoin = areComposablesOverlapping(
-        composable1Bounds = coinCoordinates,
+        composable1Bounds = someState.coordinates,
         composable2Bounds = heroCoordinates,
     )
 
@@ -95,16 +117,17 @@ fun GameScreen() {
             modifier = Modifier.align(Alignment.TopEnd),
             text = "Score: $score",
         )
-        repeat(5) {
+//        fallingItems.forEach {
             FallingCoin(
                 modifier = Modifier,
                 screenHeightPx = constraints.maxHeight.toFloat(),
                 screenWidthPx = constraints.maxWidth.toFloat(),
                 coinCoordinates = { coordinates ->
-                    coinCoordinates = coordinates
+                    someState.coordinates = coordinates
+//                    it.coordinates.value = coordinates
                 },
             )
-        }
+//        }
 
         DraggableHero(
             heroCoordinates = { coordinates ->
@@ -279,4 +302,26 @@ fun areComposablesOverlapping(
 
     // Return true if both horizontal and vertical overlap is true
     return horizontalOverlap && verticalOverlap
+}
+
+fun areComposablesOverlapping(
+    composable1BoundsList: List<Rect>,
+    composable2Bounds: Rect,
+): Boolean {
+    // Check for horizontal overlap
+    return composable1BoundsList.any { composable1Bounds ->
+        val horizontalOverlap = (
+                composable1Bounds.left <= composable2Bounds.right &&
+                        composable1Bounds.right >= composable2Bounds.left
+                )
+
+        // Check for vertical overlap
+        val verticalOverlap = (
+                composable1Bounds.top <= composable2Bounds.bottom &&
+                        composable1Bounds.bottom >= composable2Bounds.top
+                )
+
+        // Return true if both horizontal and vertical overlap is true
+        return horizontalOverlap && verticalOverlap
+    }
 }
