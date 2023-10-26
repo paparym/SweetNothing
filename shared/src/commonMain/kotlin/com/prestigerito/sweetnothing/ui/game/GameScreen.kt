@@ -1,7 +1,6 @@
 package com.prestigerito.sweetnothing.ui.game
 
 import androidx.compose.animation.animateColor
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -25,12 +24,10 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.Stable
-import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,62 +46,27 @@ import com.prestigerito.sweetnothing.MR
 import com.prestigerito.sweetnothing.ui.menu.AnimatedItem
 import com.prestigerito.sweetnothing.ui.menu.AnimationType
 import dev.icerock.moko.resources.compose.painterResource
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
-
-@Stable
-data class FallingItem(
-    var coordinates: State<Rect> = mutableStateOf(Rect.Zero),
-    val tag: Any = "",
-)
 
 @Composable
 fun GameScreen() {
-    val someState = rememberItemFallState()
-
-
-    var rainCoordinates by remember { mutableStateOf(Rect.Zero) }
     var heroCoordinates by remember { mutableStateOf(Rect.Zero) }
-    val fallingItems = remember {
-        mutableStateListOf(
-            FallingItem(),
-            FallingItem(),
-            FallingItem(),
-            FallingItem(),
-            FallingItem(),
-            FallingItem(),
-        )
-    }
 
     var score by remember { mutableStateOf(0) }
 
-    val isCollisionHeroEnemy = areComposablesOverlapping(
-        composable1Bounds = rainCoordinates,
-        composable2Bounds = heroCoordinates,
-    )
-    // TODO: update
-    val isCollisionHeroCoin = areComposablesOverlapping(
-        composable1Bounds = someState.coordinates,
-        composable2Bounds = heroCoordinates,
-    )
-
-    val fullBackground by animateColorAsState(
-        targetValue = when {
-            isCollisionHeroEnemy -> Color.Red
-            isCollisionHeroCoin -> Color.Yellow
-            else -> Color.White
-        },
-    )
-
-    LaunchedEffect(isCollisionHeroCoin) {
-        if (isCollisionHeroCoin) {
-            score++
-        }
-    }
+//    val backgroundColor by animateColorAsState(
+//        targetValue = when {
+//            heroCoordinates.overlaps(coinCoordinates) -> Color.Red
+//            isCollisionHeroCoin -> Color.Yellow
+//            else -> Color.White
+//        },
+//    )
 
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
-            .background(fullBackground)
+//            .background(backgroundColor)
             .windowInsetsPadding(WindowInsets.systemBars),
     ) {
         Image(
@@ -117,17 +79,18 @@ fun GameScreen() {
             modifier = Modifier.align(Alignment.TopEnd),
             text = "Score: $score",
         )
-//        fallingItems.forEach {
+
+        repeat(10) {
             FallingCoin(
                 modifier = Modifier,
                 screenHeightPx = constraints.maxHeight.toFloat(),
                 screenWidthPx = constraints.maxWidth.toFloat(),
-                coinCoordinates = { coordinates ->
-                    someState.coordinates = coordinates
-//                    it.coordinates.value = coordinates
-                },
+                heroCoordinates = heroCoordinates,
+                onCollision = {
+                    score++
+                }
             )
-//        }
+        }
 
         DraggableHero(
             heroCoordinates = { coordinates ->
@@ -184,7 +147,7 @@ private fun DraggableHero(
                 }
                 .size(heroSize),
             assets = mainHeroAssets,
-            animationType = AnimationType.NO_ANIMATION,
+            animationType = AnimationType.ASSET_CHANGE,
         )
     }
 }
@@ -199,7 +162,8 @@ fun FallingCoin(
     modifier: Modifier = Modifier,
     screenHeightPx: Float,
     screenWidthPx: Float,
-    coinCoordinates: (Rect) -> Unit,
+    heroCoordinates: Rect,
+    onCollision: () -> Unit,
 ) {
     val density = LocalDensity.current
     val coinSizeDp = 50.dp
@@ -216,7 +180,9 @@ fun FallingCoin(
         Animatable(randomHorizontalPosition())
     }
 
-    LaunchedEffect(Unit) {
+    val coroutineScope = rememberCoroutineScope()
+    var runAgain by remember { mutableStateOf(false) }
+    LaunchedEffect(runAgain) {
         while (true) {
             yAnimation.animateTo(
                 targetValue = screenHeightPx,
@@ -238,7 +204,14 @@ fun FallingCoin(
                 translationX = xAnimation.value
             }
             .onGloballyPositioned { coordinates ->
-                coinCoordinates(coordinates.boundsInRoot())
+                if (coordinates.boundsInRoot().overlaps(heroCoordinates)) {
+                    coroutineScope.launch {
+                        yAnimation.snapTo(-coinSizePx)
+                        xAnimation.snapTo(targetValue = randomHorizontalPosition())
+                        runAgain = !runAgain
+                        onCollision.invoke()
+                    }
+                }
             },
         assets = coinAssets,
         animationType = AnimationType.Y_AXIS_ROTATION,
@@ -308,20 +281,10 @@ fun areComposablesOverlapping(
     composable1BoundsList: List<Rect>,
     composable2Bounds: Rect,
 ): Boolean {
-    // Check for horizontal overlap
-    return composable1BoundsList.any { composable1Bounds ->
-        val horizontalOverlap = (
-                composable1Bounds.left <= composable2Bounds.right &&
-                        composable1Bounds.right >= composable2Bounds.left
-                )
-
-        // Check for vertical overlap
-        val verticalOverlap = (
-                composable1Bounds.top <= composable2Bounds.bottom &&
-                        composable1Bounds.bottom >= composable2Bounds.top
-                )
-
-        // Return true if both horizontal and vertical overlap is true
-        return horizontalOverlap && verticalOverlap
+    for (composable1Bound in composable1BoundsList) {
+        if (composable1Bound.overlaps(composable2Bounds)) {
+            return true
+        }
     }
+    return false
 }

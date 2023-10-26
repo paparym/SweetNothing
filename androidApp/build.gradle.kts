@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.prestigerito.sweetnothing.android"
-    compileSdk = 33
+    compileSdk = 34
     defaultConfig {
         applicationId = "com.prestigerito.sweetnothing.android"
         minSdk = 24
