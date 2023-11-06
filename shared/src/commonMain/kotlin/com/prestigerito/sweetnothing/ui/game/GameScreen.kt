@@ -193,22 +193,37 @@ fun FallingCoin(
     val xAnimation = remember {
         Animatable(randomHorizontalPosition())
     }
+    val itemAlpha = remember {
+        Animatable(0f)
+    }
 
     val coroutineScope = rememberCoroutineScope()
     var itemCoordinates by remember { mutableStateOf(Rect.Zero) }
     var fallingToggle by remember { mutableStateOf(true) }
     LaunchedEffect(fallingToggle) {
         delay(startDelay)
-        while (true) {
-            yAnimation.animateTo(
-                targetValue = screenHeightPx,
+        launch {
+            itemAlpha.animateTo(
+                targetValue = 1f,
                 animationSpec = tween(
-                    durationMillis = 2000,
-                    easing = LinearEasing
+                    durationMillis = 250,
+                    easing = LinearEasing,
                 )
             )
-            xAnimation.snapTo(targetValue = randomHorizontalPosition())
-            yAnimation.snapTo(targetValue = -coinSizePx)
+        }
+        launch {
+            while (true) {
+                yAnimation.animateTo(
+                    targetValue = screenHeightPx,
+                    animationSpec = tween(
+                        durationMillis = 2000,
+                        easing = LinearEasing
+                    )
+                )
+                xAnimation.snapTo(targetValue = randomHorizontalPosition())
+                yAnimation.snapTo(targetValue = -coinSizePx)
+                itemAlpha.snapTo(targetValue = 0f)
+            }
         }
     }
 
@@ -218,6 +233,7 @@ fun FallingCoin(
             .graphicsLayer {
                 translationY = yAnimation.value
                 translationX = xAnimation.value
+                alpha = itemAlpha.value
             }
             .onGloballyPositioned { coordinates ->
                 itemCoordinates = coordinates.boundsInRoot()
@@ -225,6 +241,7 @@ fun FallingCoin(
                     coroutineScope.launch {
                         yAnimation.snapTo(-coinSizePx)
                         xAnimation.snapTo(targetValue = randomHorizontalPosition())
+                        itemAlpha.snapTo(targetValue = 0f)
                         onCollision.invoke()
                         // start falling again
                         fallingToggle = !fallingToggle
