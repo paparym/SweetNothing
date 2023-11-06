@@ -147,7 +147,7 @@ private fun DraggableHero(
                 }
                 .size(heroSize),
             assets = mainHeroAssets,
-            animationType = AnimationType.ASSET_CHANGE,
+            animationType = AnimationType.NO_ANIMATION,
         )
     }
 }
@@ -182,7 +182,7 @@ fun FallingCoin(
 
     val coroutineScope = rememberCoroutineScope()
     var runAgain by remember { mutableStateOf(false) }
-    LaunchedEffect(runAgain) {
+    LaunchedEffect(Unit) {
         while (true) {
             yAnimation.animateTo(
                 targetValue = screenHeightPx,
