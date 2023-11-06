@@ -33,6 +33,9 @@ object MainScreenNav : Screen {
 object GameScreenNav : Screen {
     @Composable
     override fun Content() {
-        GameScreen()
+        val navigator = LocalNavigator.currentOrThrow
+        GameScreen(
+            onBack = { navigator.pop() }
+        )
     }
 }

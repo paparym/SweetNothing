@@ -11,6 +11,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -21,6 +22,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -46,11 +50,14 @@ import com.prestigerito.sweetnothing.MR
 import com.prestigerito.sweetnothing.ui.menu.AnimatedItem
 import com.prestigerito.sweetnothing.ui.menu.AnimationType
 import dev.icerock.moko.resources.compose.painterResource
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 @Composable
-fun GameScreen() {
+fun GameScreen(
+    onBack: () -> Unit,
+) {
     var heroCoordinates by remember { mutableStateOf(Rect.Zero) }
 
     var score by remember { mutableStateOf(0) }
@@ -86,6 +93,7 @@ fun GameScreen() {
                 screenHeightPx = constraints.maxHeight.toFloat(),
                 screenWidthPx = constraints.maxWidth.toFloat(),
                 heroCoordinates = heroCoordinates,
+                startDelay = it * 200L,
                 onCollision = {
                     score++
                 }
@@ -96,6 +104,11 @@ fun GameScreen() {
             heroCoordinates = { coordinates ->
                 heroCoordinates = coordinates
             },
+        )
+        Icon(
+            modifier = Modifier.padding(16.dp).clickable { onBack.invoke() },
+            imageVector = Icons.Default.ArrowBack,
+            contentDescription = null
         )
     }
 }
@@ -164,6 +177,7 @@ fun FallingCoin(
     screenWidthPx: Float,
     heroCoordinates: Rect,
     onCollision: () -> Unit,
+    startDelay: Long = 0L,
 ) {
     val density = LocalDensity.current
     val coinSizeDp = 50.dp
@@ -181,8 +195,10 @@ fun FallingCoin(
     }
 
     val coroutineScope = rememberCoroutineScope()
-    var runAgain by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) {
+    var itemCoordinates by remember { mutableStateOf(Rect.Zero) }
+    var fallingToggle by remember { mutableStateOf(true) }
+    LaunchedEffect(fallingToggle) {
+        delay(startDelay)
         while (true) {
             yAnimation.animateTo(
                 targetValue = screenHeightPx,
@@ -204,12 +220,14 @@ fun FallingCoin(
                 translationX = xAnimation.value
             }
             .onGloballyPositioned { coordinates ->
+                itemCoordinates = coordinates.boundsInRoot()
                 if (coordinates.boundsInRoot().overlaps(heroCoordinates)) {
                     coroutineScope.launch {
                         yAnimation.snapTo(-coinSizePx)
                         xAnimation.snapTo(targetValue = randomHorizontalPosition())
-                        runAgain = !runAgain
                         onCollision.invoke()
+                        // start falling again
+                        fallingToggle = !fallingToggle
                     }
                 }
             },

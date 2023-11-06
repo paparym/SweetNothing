@@ -77,6 +77,7 @@ kotlin {
             }
         }
         val androidMain by getting {
+            dependsOn(commonMain)
             dependencies {
                 implementation(libs.sqlDelight.android)
                 implementation(libs.appCompat)
