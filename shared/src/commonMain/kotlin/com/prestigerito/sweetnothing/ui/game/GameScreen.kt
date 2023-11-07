@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import com.prestigerito.sweetnothing.MR
 import com.prestigerito.sweetnothing.ui.menu.AnimatedItem
 import com.prestigerito.sweetnothing.ui.menu.AnimationType
+import dev.icerock.moko.resources.ImageResource
 import dev.icerock.moko.resources.compose.painterResource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -74,41 +75,53 @@ fun GameScreen(
         modifier = Modifier
             .fillMaxSize()
 //            .background(backgroundColor)
-            .windowInsetsPadding(WindowInsets.systemBars),
+//            .windowInsetsPadding(WindowInsets.systemBars),
     ) {
         Image(
-            modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.systemBars),
+            modifier = Modifier.fillMaxSize(),
+//                .windowInsetsPadding(WindowInsets.systemBars),
             painter = painterResource(MR.images.white_bg),
             contentDescription = null,
             contentScale = ContentScale.FillHeight,
         )
         Text(
-            modifier = Modifier.align(Alignment.TopEnd),
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(16.dp)
+                .windowInsetsPadding(WindowInsets.systemBars),
             text = "Score: $score",
         )
-
+        // Coins
         repeat(10) {
-            FallingCoin(
+            FallingItem(
                 modifier = Modifier,
                 screenHeightPx = constraints.maxHeight.toFloat(),
                 screenWidthPx = constraints.maxWidth.toFloat(),
                 heroCoordinates = heroCoordinates,
                 startDelay = it * 200L,
+                animationType = AnimationType.Y_AXIS_ROTATION,
+                assets = coinAssets,
+                speed = if (score > 20) 2000 else 3000,
+                gameInProgress = score <= 10,
                 onCollision = {
                     score++
                 }
             )
         }
 
+        Icon(
+            modifier = Modifier
+                .windowInsetsPadding(WindowInsets.systemBars)
+                .padding(16.dp)
+                .clickable { onBack.invoke() },
+            imageVector = Icons.Default.ArrowBack,
+            contentDescription = null
+        )
+
         DraggableHero(
             heroCoordinates = { coordinates ->
                 heroCoordinates = coordinates
             },
-        )
-        Icon(
-            modifier = Modifier.padding(16.dp).clickable { onBack.invoke() },
-            imageVector = Icons.Default.ArrowBack,
-            contentDescription = null
         )
     }
 }
@@ -171,24 +184,28 @@ enum class HeroDirection {
 }
 
 @Composable
-fun FallingCoin(
+fun FallingItem(
     modifier: Modifier = Modifier,
     screenHeightPx: Float,
     screenWidthPx: Float,
     heroCoordinates: Rect,
-    onCollision: () -> Unit,
     startDelay: Long = 0L,
+    animationType: AnimationType = AnimationType.Y_AXIS_ROTATION,
+    assets: List<ImageResource> = coinAssets,
+    speed: Int = 2000,
+    gameInProgress: Boolean = true,
+    onCollision: () -> Unit,
 ) {
     val density = LocalDensity.current
-    val coinSizeDp = 50.dp
-    val coinSizePx = with(density) { coinSizeDp.toPx() }
+    val itemSizeDp = 50.dp
+    val itemSizePx = with(density) { itemSizeDp.toPx() }
 
     val yAnimation = remember {
-        Animatable(-coinSizePx)
+        Animatable(-itemSizePx)
     }
 
     fun randomHorizontalPosition() =
-        (0..(screenWidthPx.toInt() - coinSizePx.toInt())).random().toFloat()
+        (0..(screenWidthPx.toInt() - itemSizePx.toInt())).random().toFloat()
 
     val xAnimation = remember {
         Animatable(randomHorizontalPosition())
@@ -199,31 +216,46 @@ fun FallingCoin(
 
     val coroutineScope = rememberCoroutineScope()
     var itemCoordinates by remember { mutableStateOf(Rect.Zero) }
-    var fallingToggle by remember { mutableStateOf(true) }
+    var fallingToggle by remember { mutableStateOf(AnimationHelper.START) }
+    var alphaToggle by remember { mutableStateOf(true) }
+
     LaunchedEffect(fallingToggle) {
-        delay(startDelay)
-        launch {
-            itemAlpha.animateTo(
-                targetValue = 1f,
+        if (fallingToggle == AnimationHelper.START) {
+            delay(startDelay)
+        }
+        while (gameInProgress) {
+            yAnimation.animateTo(
+                targetValue = screenHeightPx,
                 animationSpec = tween(
-                    durationMillis = 250,
-                    easing = LinearEasing,
+                    durationMillis = speed,
+                    easing = LinearEasing
                 )
             )
+            xAnimation.snapTo(targetValue = randomHorizontalPosition())
+            yAnimation.snapTo(targetValue = -itemSizePx)
+            itemAlpha.snapTo(targetValue = 0f)
+            alphaToggle = !alphaToggle
         }
-        launch {
-            while (true) {
-                yAnimation.animateTo(
-                    targetValue = screenHeightPx,
-                    animationSpec = tween(
-                        durationMillis = 2000,
-                        easing = LinearEasing
-                    )
+    }
+    LaunchedEffect(alphaToggle) {
+        itemAlpha.animateTo(
+            targetValue = 1f,
+            animationSpec = tween(
+                durationMillis = 350,
+                easing = LinearEasing,
+            )
+        )
+    }
+    LaunchedEffect(gameInProgress) {
+        if (!gameInProgress) {
+            yAnimation.animateTo(yAnimation.value)
+            itemAlpha.animateTo(
+                targetValue = 0f,
+                animationSpec = tween(
+                    durationMillis = 1000,
+                    delayMillis = 500,
                 )
-                xAnimation.snapTo(targetValue = randomHorizontalPosition())
-                yAnimation.snapTo(targetValue = -coinSizePx)
-                itemAlpha.snapTo(targetValue = 0f)
-            }
+            )
         }
     }
 
@@ -239,18 +271,31 @@ fun FallingCoin(
                 itemCoordinates = coordinates.boundsInRoot()
                 if (coordinates.boundsInRoot().overlaps(heroCoordinates)) {
                     coroutineScope.launch {
-                        yAnimation.snapTo(-coinSizePx)
+                        yAnimation.snapTo(-itemSizePx)
                         xAnimation.snapTo(targetValue = randomHorizontalPosition())
                         itemAlpha.snapTo(targetValue = 0f)
                         onCollision.invoke()
                         // start falling again
-                        fallingToggle = !fallingToggle
+                        fallingToggle = fallingToggle.invert()
+                        alphaToggle = !alphaToggle
                     }
                 }
             },
-        assets = coinAssets,
-        animationType = AnimationType.Y_AXIS_ROTATION,
+        assets = assets,
+        animationType = animationType,
     )
+}
+
+enum class AnimationHelper {
+    START, IN_PROGRESS_TOGGLE_ON, IN_PROGRESS_TOGGLE_OFF;
+
+    fun invert(): AnimationHelper {
+        return if (this == IN_PROGRESS_TOGGLE_ON) {
+            IN_PROGRESS_TOGGLE_OFF
+        } else {
+            IN_PROGRESS_TOGGLE_ON
+        }
+    }
 }
 
 @Composable

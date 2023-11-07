@@ -53,8 +53,8 @@ fun MainMenu(
     val state by viewModel.state.collectAsState()
     Box(
         modifier = Modifier.fillMaxSize()
-            .background(MaterialTheme.colorScheme.error)
-            .windowInsetsPadding(WindowInsets.systemBars),
+            .background(MaterialTheme.colorScheme.error),
+//            .windowInsetsPadding(WindowInsets.systemBars),
         contentAlignment = Alignment.Center,
     ) {
         EndlessBackground(
@@ -162,8 +162,11 @@ fun EndlessBackground(
 ) {
     val offset = remember { Animatable(0f) }
     val offset2 = remember { Animatable(0f) }
-    val animation = tween<Float>(durationMillis = 2000, easing = LinearEasing)
-    BoxWithConstraints {
+    val animation = tween<Float>(durationMillis = 10000, easing = LinearEasing)
+    BoxWithConstraints(
+        modifier = Modifier.fillMaxSize()
+//            .windowInsetsPadding(WindowInsets.systemBars)
+    ) {
         LaunchedEffect(this.constraints.maxHeight) {
             launch {
                 offset.animateTo(
@@ -185,7 +188,7 @@ fun EndlessBackground(
         Image(
             modifier = Modifier
                 .fillMaxSize()
-                .windowInsetsPadding(WindowInsets.systemBars)
+//                .windowInsetsPadding(WindowInsets.systemBars)
                 .offset {
                     IntOffset(
                         y = -(constraints.maxHeight.toFloat().toInt()) + (offset2.value.toInt()),
@@ -199,6 +202,7 @@ fun EndlessBackground(
         Image(
             modifier = Modifier
                 .fillMaxSize()
+//                .windowInsetsPadding(WindowInsets.systemBars)
                 .offset { IntOffset(y = offset.value.toInt(), x = 0) },
             painter = painterResource(asset),
             contentDescription = null,
