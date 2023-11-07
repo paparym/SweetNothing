@@ -6,11 +6,15 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -52,43 +56,78 @@ fun MainMenu(
 ) {
     val state by viewModel.state.collectAsState()
     Box(
-        modifier = Modifier.fillMaxSize()
-            .background(MaterialTheme.colorScheme.error),
-//            .windowInsetsPadding(WindowInsets.systemBars),
-        contentAlignment = Alignment.Center,
+        modifier = Modifier.fillMaxSize(),
     ) {
         EndlessBackground(
             asset = MR.images.symbol_bg,
         )
-        Text(
-            modifier = Modifier.padding(top = 150.dp),
-            text = stringResource(MR.strings.sweetNothing),
-        )
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
+        Row(
+            modifier = Modifier.fillMaxWidth()
+                .windowInsetsPadding(WindowInsets.systemBars)
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            Button(onClick = onPlayClicked) {
-                Text(text = stringResource(MR.strings.play))
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                AnimatedItem(
+                    modifier = Modifier.size(100.dp),
+                    assets = coinAssets,
+                    animationType = AnimationType.Y_AXIS_ROTATION
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+                Image(
+                    modifier = Modifier.height(100.dp),
+                    painter = painterResource(MR.images.grab),
+                    contentDescription = null,
+                )
             }
-            Button(onClick = onSelectLevelClicked) {
-                Text(text = stringResource(MR.strings.selectLevel))
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                AnimatedItem(
+                    modifier = Modifier.size(100.dp),
+                    assets = coinAssets,
+                    animationType = AnimationType.Y_AXIS_ROTATION
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+                Image(
+                    modifier = Modifier.height(100.dp),
+                    painter = painterResource(MR.images.grab),
+                    contentDescription = null,
+                )
             }
-            Button(onClick = onHighScoresClicked) {
-                Text(text = stringResource(MR.strings.highScores))
+        }
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                modifier = Modifier.padding(top = 150.dp),
+                text = stringResource(MR.strings.sweetNothing),
+            )
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Button(onClick = onPlayClicked) {
+                    Text(text = stringResource(MR.strings.play))
+                }
+                Button(onClick = onSelectLevelClicked) {
+                    Text(text = stringResource(MR.strings.selectLevel))
+                }
+                Button(onClick = onHighScoresClicked) {
+                    Text(text = stringResource(MR.strings.highScores))
+                }
+                Image(
+                    modifier = Modifier.height(100.dp),
+                    painter = painterResource(MR.images.shop),
+                    contentDescription = null,
+                )
+                AnimatedItem(
+                    modifier = Modifier.size(100.dp),
+                    assets = mainHeroAssets,
+                )
             }
-            Image(
-                modifier = Modifier.height(100.dp),
-                painter = painterResource(MR.images.shop),
-                contentDescription = null,
-            )
-            AnimatedItem(
-                modifier = Modifier.size(100.dp),
-                assets = coinAssets,
-            )
-            AnimatedItem(
-                modifier = Modifier.size(100.dp),
-                assets = mainHeroAssets,
-            )
         }
     }
 }
@@ -165,7 +204,6 @@ fun EndlessBackground(
     val animation = tween<Float>(durationMillis = 10000, easing = LinearEasing)
     BoxWithConstraints(
         modifier = Modifier.fillMaxSize()
-//            .windowInsetsPadding(WindowInsets.systemBars)
     ) {
         LaunchedEffect(this.constraints.maxHeight) {
             launch {
@@ -188,7 +226,6 @@ fun EndlessBackground(
         Image(
             modifier = Modifier
                 .fillMaxSize()
-//                .windowInsetsPadding(WindowInsets.systemBars)
                 .offset {
                     IntOffset(
                         y = -(constraints.maxHeight.toFloat().toInt()) + (offset2.value.toInt()),
@@ -202,7 +239,6 @@ fun EndlessBackground(
         Image(
             modifier = Modifier
                 .fillMaxSize()
-//                .windowInsetsPadding(WindowInsets.systemBars)
                 .offset { IntOffset(y = offset.value.toInt(), x = 0) },
             painter = painterResource(asset),
             contentDescription = null,
