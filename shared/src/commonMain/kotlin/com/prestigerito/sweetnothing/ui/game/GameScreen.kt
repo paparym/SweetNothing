@@ -269,7 +269,7 @@ fun FallingItem(
             }
             .onGloballyPositioned { coordinates ->
                 itemCoordinates = coordinates.boundsInRoot()
-                if (coordinates.boundsInRoot().overlaps(heroCoordinates)) {
+                if (coordinates.boundsInRoot().overlaps(heroCoordinates) && gameInProgress) {
                     coroutineScope.launch {
                         yAnimation.snapTo(-itemSizePx)
                         xAnimation.snapTo(targetValue = randomHorizontalPosition())

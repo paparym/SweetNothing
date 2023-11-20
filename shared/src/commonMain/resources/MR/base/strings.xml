@@ -4,4 +4,6 @@
     <string name="highScores">High Scores</string>
     <string name="play">Play</string>
     <string name="selectLevel">Select Level</string>
+    <string name="grab">Grab</string>
+    <string name="avoid">Avoid</string>
 </resources>

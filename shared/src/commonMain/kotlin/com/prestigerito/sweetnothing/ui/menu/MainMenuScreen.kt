@@ -5,7 +5,6 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -22,7 +21,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,6 +37,8 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.prestigerito.sweetnothing.MR
 import com.prestigerito.sweetnothing.presentation.MainMenuViewModel
+import com.prestigerito.sweetnothing.ui.MenuButton
+import com.prestigerito.sweetnothing.ui.RuleButton
 import com.prestigerito.sweetnothing.ui.game.coinAssets
 import com.prestigerito.sweetnothing.ui.game.mainHeroAssets
 import dev.icerock.moko.resources.ImageResource
@@ -65,9 +65,10 @@ fun MainMenu(
             modifier = Modifier.fillMaxWidth()
                 .windowInsetsPadding(WindowInsets.systemBars)
                 .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Column(
+                modifier = Modifier.weight(1f),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 AnimatedItem(
@@ -76,13 +77,12 @@ fun MainMenu(
                     animationType = AnimationType.Y_AXIS_ROTATION
                 )
                 Spacer(modifier = Modifier.height(20.dp))
-                Image(
-                    modifier = Modifier.height(100.dp),
-                    painter = painterResource(MR.images.grab),
-                    contentDescription = null,
+                RuleButton(
+                    text = stringResource(MR.strings.grab),
                 )
             }
             Column(
+                modifier = Modifier.weight(1f),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 AnimatedItem(
@@ -91,10 +91,8 @@ fun MainMenu(
                     animationType = AnimationType.Y_AXIS_ROTATION
                 )
                 Spacer(modifier = Modifier.height(20.dp))
-                Image(
-                    modifier = Modifier.height(100.dp),
-                    painter = painterResource(MR.images.grab),
-                    contentDescription = null,
+                RuleButton(
+                    text = stringResource(MR.strings.avoid)
                 )
             }
         }
@@ -109,24 +107,23 @@ fun MainMenu(
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
+                MenuButton(
+                    text = stringResource(MR.strings.play),
+                    onClick = onPlayClicked
+                )
                 Button(onClick = onPlayClicked) {
                     Text(text = stringResource(MR.strings.play))
                 }
-                Button(onClick = onSelectLevelClicked) {
-                    Text(text = stringResource(MR.strings.selectLevel))
-                }
-                Button(onClick = onHighScoresClicked) {
-                    Text(text = stringResource(MR.strings.highScores))
-                }
-                Image(
-                    modifier = Modifier.height(100.dp),
-                    painter = painterResource(MR.images.shop),
-                    contentDescription = null,
-                )
-                AnimatedItem(
-                    modifier = Modifier.size(100.dp),
-                    assets = mainHeroAssets,
-                )
+//                Button(onClick = onSelectLevelClicked) {
+//                    Text(text = stringResource(MR.strings.selectLevel))
+//                }
+//                Button(onClick = onHighScoresClicked) {
+//                    Text(text = stringResource(MR.strings.highScores))
+//                }
+//                AnimatedItem(
+//                    modifier = Modifier.size(100.dp),
+//                    assets = mainHeroAssets,
+//                )
             }
         }
     }
@@ -154,15 +151,15 @@ fun AnimatedItem(
             AnimationType.Y_AXIS_ROTATION -> {
                 while (true) {
                     yAxisMovement.animateTo(
-                        targetValue = 60f,
-                        animationSpec = tween(easing = LinearEasing)
+                        targetValue = 35f,
+                        animationSpec = tween(easing = LinearEasing, durationMillis = 4000)
                     )
                     yAxisMovement.animateTo(
                         targetValue = 0f,
                         animationSpec = tween(easing = LinearEasing)
                     )
                     yAxisMovement.animateTo(
-                        targetValue = -60f,
+                        targetValue = -35f,
                         animationSpec = tween(easing = LinearEasing)
                     )
                 }
