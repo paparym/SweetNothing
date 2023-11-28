@@ -46,6 +46,7 @@ import com.prestigerito.sweetnothing.ui.menu.AnimatedItem
 import com.prestigerito.sweetnothing.ui.menu.AnimationType
 import dev.icerock.moko.resources.ImageResource
 import dev.icerock.moko.resources.compose.painterResource
+import dev.icerock.moko.resources.compose.stringResource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
@@ -58,17 +59,29 @@ fun GameScreen(
     val state by viewModel.state.collectAsState()
     val score by viewModel.score.collectAsState()
     var heroCoordinates by remember { mutableStateOf(Rect.Zero) }
-    var gameInProgress by remember { mutableStateOf(true) }
 
     val density = LocalDensity.current
     var offsetX by remember { mutableStateOf(0f) }
     var direction by remember { mutableStateOf(HeroDirection.RIGHT) }
     var endBound by remember { mutableStateOf(0f) }
     val heroSize = 60.dp
+    LaunchedEffect(key1 = state.isGameInProgress) {
+        if (!state.isGameInProgress) {
+        }
+    }
     BoxWithConstraints(
         modifier = Modifier
             .onSizeChanged { endBound = it.width.toFloat() - with(density) { heroSize.toPx() } }
             .fillMaxSize()
+            .then(
+                if (!state.isGameInProgress) {
+                    Modifier.clickable {
+                        viewModel.refreshGame()
+                    }
+                } else {
+                    Modifier
+                },
+            )
             .pointerInput(Unit) {
                 detectDragGestures { change, dragAmount ->
                     change.consume()
@@ -81,7 +94,9 @@ fun GameScreen(
                         minimumValue = 0f,
                         maximumValue = endBound,
                     )
-                    offsetX = dragWithBounds
+                    if (state.isGameInProgress) {
+                        offsetX = dragWithBounds
+                    }
                 }
             },
     ) {
@@ -96,66 +111,60 @@ fun GameScreen(
                 .align(Alignment.TopEnd)
                 .padding(16.dp)
                 .windowInsetsPadding(WindowInsets.systemBars),
-            text = "Score: $score",
+            text = stringResource(MR.strings.score, score),
         )
+        println("--> state.levelState ${state.levelState}")
         Text(
             modifier = Modifier
                 .align(Alignment.Center)
                 .padding(16.dp)
                 .windowInsetsPadding(WindowInsets.systemBars),
-            text = "Level: ${state.level}",
+            text = state.levelState.stringValue(),
         )
-        // Enemies
-        repeat(state.enemy1.amount) {
-            FallingItem(
-                modifier = Modifier,
-                screenHeightPx = constraints.maxHeight.toFloat(),
-                screenWidthPx = constraints.maxWidth.toFloat(),
-                heroCoordinates = { heroCoordinates },
-                startDelay = it * 200L,
-                animationType = AnimationType.NO_ANIMATION,
-                assets = enemy1Asset,
-                speed = state.enemy1.speed,
-                gameInProgress = gameInProgress,
-                onCollision = {
-                    gameInProgress = false
-                },
-            )
-        }
-
-        if (state.enemy2.amount > 0) {
-            repeat(state.enemy2.amount) {
+        if (state.isGameInProgress) {
+            // Enemies
+            repeat(state.enemy1.amount) {
                 FallingItem(
                     modifier = Modifier,
                     screenHeightPx = constraints.maxHeight.toFloat(),
                     screenWidthPx = constraints.maxWidth.toFloat(),
                     heroCoordinates = { heroCoordinates },
-                    startDelay = it * 250L,
+                    startDelay = it * 200L,
                     animationType = AnimationType.NO_ANIMATION,
-                    assets = enemy2Asset,
-                    speed = state.enemy2.speed,
-                    gameInProgress = gameInProgress,
-                    onCollision = {
-                        gameInProgress = false
-                    },
+                    assets = enemy1Asset,
+                    speed = state.enemy1.speed,
+                    onCollision = { viewModel.gameFinished() },
                 )
             }
-        }
-
-        // Coins
-        repeat(state.coin.amount) {
-            FallingItem(
-                modifier = Modifier,
-                screenHeightPx = constraints.maxHeight.toFloat(),
-                screenWidthPx = constraints.maxWidth.toFloat(),
-                heroCoordinates = { heroCoordinates },
-                startDelay = it * 200L,
-                animationType = AnimationType.NO_ANIMATION,
-                assets = coinAssets,
-                speed = state.coin.speed,
-                gameInProgress = gameInProgress,
-                onCollision = viewModel::addScore,
-            )
+            if (state.enemy2.amount > 0) {
+                repeat(state.enemy2.amount) {
+                    FallingItem(
+                        modifier = Modifier,
+                        screenHeightPx = constraints.maxHeight.toFloat(),
+                        screenWidthPx = constraints.maxWidth.toFloat(),
+                        heroCoordinates = { heroCoordinates },
+                        startDelay = it * 250L,
+                        animationType = AnimationType.NO_ANIMATION,
+                        assets = enemy2Asset,
+                        speed = state.enemy2.speed,
+                        onCollision = { viewModel.gameFinished() },
+                    )
+                }
+            }
+            // Coins
+            repeat(state.coin.amount) {
+                FallingItem(
+                    modifier = Modifier,
+                    screenHeightPx = constraints.maxHeight.toFloat(),
+                    screenWidthPx = constraints.maxWidth.toFloat(),
+                    heroCoordinates = { heroCoordinates },
+                    startDelay = it * 200L,
+                    animationType = AnimationType.NO_ANIMATION,
+                    assets = coinAssets,
+                    speed = state.coin.speed,
+                    onCollision = viewModel::addScore,
+                )
+            }
         }
 
         Icon(
@@ -227,7 +236,6 @@ fun FallingItem(
     animationType: AnimationType = AnimationType.Y_AXIS_ROTATION,
     assets: List<ImageResource> = coinAssets,
     speed: Int = 2000,
-    gameInProgress: Boolean = true,
     onCollision: () -> Unit,
 ) {
     val density = LocalDensity.current
@@ -256,7 +264,7 @@ fun FallingItem(
         if (fallingToggle == AnimationHelper.START) {
             delay(startDelay)
         }
-        while (gameInProgress) {
+        while (true) {
             yAnimation.animateTo(
                 targetValue = screenHeightPx,
                 animationSpec = tween(
@@ -279,18 +287,6 @@ fun FallingItem(
             ),
         )
     }
-    LaunchedEffect(gameInProgress) {
-        if (!gameInProgress) {
-            yAnimation.animateTo(yAnimation.value)
-            itemAlpha.animateTo(
-                targetValue = 0f,
-                animationSpec = tween(
-                    durationMillis = 1000,
-                    delayMillis = 500,
-                ),
-            )
-        }
-    }
 
     AnimatedItem(
         modifier = modifier
@@ -302,9 +298,7 @@ fun FallingItem(
             }
             .onGloballyPositioned { coordinates ->
                 itemCoordinates = coordinates.boundsInRoot()
-                if (coordinates.boundsInRoot()
-                        .overlaps(heroCoordinates.invoke()) && gameInProgress
-                ) {
+                if (coordinates.boundsInRoot().overlaps(heroCoordinates.invoke())) {
                     coroutineScope.launch {
                         yAnimation.snapTo(-itemSizePx)
                         xAnimation.snapTo(targetValue = randomHorizontalPosition())

@@ -43,7 +43,7 @@ object GameScreenNav : Screen {
         )
         GameScreen(
             viewModel = viewModel,
-            onBack = { navigator.pop() }
+            onBack = { navigator.pop() },
         )
     }
 }

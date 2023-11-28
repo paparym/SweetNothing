@@ -6,4 +6,8 @@
     <string name="selectLevel">Select Level</string>
     <string name="grab">Grab</string>
     <string name="avoid">Avoid</string>
+    <string name="level">Level %1$d</string>
+    <string name="score">Score %1$d</string>
+    <string name="newHighScore">Congratulations!\nNew High Score %1$d</string>
+    <string name="tryAgain">Try Again</string>
 </resources>

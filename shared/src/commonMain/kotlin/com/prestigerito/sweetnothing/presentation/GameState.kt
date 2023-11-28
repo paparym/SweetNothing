@@ -1,7 +1,6 @@
 package com.prestigerito.sweetnothing.presentation
 
 data class GameState(
-    val level: Int = 1,
     val coin: FallingItemSpec = FallingItemSpec(
         speed = 2000,
         amount = 5,
@@ -14,7 +13,15 @@ data class GameState(
         speed = 1600,
         amount = 0,
     ),
+    val isGameInProgress: Boolean = true,
+    val levelState: LevelState = LevelState.Level(1),
 )
+
+sealed interface LevelState {
+    data class Level(val index: Int) : LevelState
+    data class NewRecord(val highScore: Int) : LevelState
+    data object TryAgain : LevelState
+}
 
 data class FallingItemSpec(
     val speed: Int,
