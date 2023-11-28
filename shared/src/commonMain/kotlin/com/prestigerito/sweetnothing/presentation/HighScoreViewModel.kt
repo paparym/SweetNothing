@@ -9,14 +9,13 @@ import kotlinx.coroutines.flow.stateIn
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 
-class MainMenuViewModel : ViewModel(), KoinComponent {
+class HighScoreViewModel : ViewModel(), KoinComponent {
     private val scoreDataSource: ScoreDataSource = get()
-    private val _state = MutableStateFlow(MainMenuState())
+    private val _state = MutableStateFlow(HighScoreState())
     val state = combine(
         _state,
         scoreDataSource.getAllScores(),
     ) { state, scores ->
-        val isHighScoreEnabled = scores.isNotEmpty()
-        state.copy(highScoreAvailable = isHighScoreEnabled)
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), MainMenuState())
+        state.copy(score = scores.firstOrNull())
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HighScoreState())
 }

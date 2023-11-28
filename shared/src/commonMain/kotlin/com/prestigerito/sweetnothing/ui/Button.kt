@@ -27,15 +27,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeJoin
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.Layout
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.prestigerito.sweetnothing.MR
-import dev.icerock.moko.resources.compose.fontFamilyResource
 import dev.icerock.moko.resources.compose.painterResource
 
 @Composable
@@ -63,7 +59,7 @@ fun RuleButton(
             targetValue = constraints.maxWidth.toFloat() * 2,
             animationSpec = infiniteRepeatable(
                 animation = tween(10000, easing = LinearEasing),
-                repeatMode = RepeatMode.Reverse
+                repeatMode = RepeatMode.Reverse,
             ),
         )
         Box(
@@ -71,31 +67,31 @@ fun RuleButton(
                 .size(200.dp, 80.dp)
                 .border(
                     border = BorderStroke(width = 3.dp, color = Color.Black),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
                 )
                 .background(
                     brush = Brush.horizontalGradient(
                         colors = gradientChoreographyList,
                         startX = 0.0f,
-                        endX = gradientValue
+                        endX = gradientValue,
                     ),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
                 )
                 .border(
                     border = BorderStroke(width = 6.dp, color = borderColor),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
                 )
-                .clickableOrNot(onClick)
+                .clickableOrNot(onClick),
         ) {
             Box(
                 modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 Text(
                     text = text,
                     color = Color.White,
                     fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
                 )
             }
         }
@@ -105,14 +101,16 @@ fun RuleButton(
 @Composable
 fun MenuButton(
     text: String,
+    enabled: Boolean = true,
     onClick: () -> Unit,
 ) {
+    val resource = if (enabled) MR.images.blue_bar else MR.images.grey_bar
     MenuButtonLayout(
         image = {
             Image(
-                modifier = Modifier.clickable { onClick.invoke() },
-                painter = painterResource(imageResource = MR.images.blue_bar),
-                contentDescription = null
+                modifier = Modifier.then(if (enabled) Modifier.clickable { onClick.invoke() } else Modifier),
+                painter = painterResource(imageResource = resource),
+                contentDescription = null,
             )
         },
         text = {
@@ -122,16 +120,8 @@ fun MenuButton(
                 color = Color.White,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                style = TextStyle.Default.copy(
-                    fontSize = 64.sp,
-                    drawStyle = Stroke(
-                        miter = 5f,
-                        width = 5f,
-                        join = StrokeJoin.Round
-                    )
-                )
             )
-        }
+        },
     )
 }
 
@@ -147,24 +137,25 @@ private fun MenuButtonLayout(
     ) { (imageMeasurables, textMeasurables), constraints ->
         val textPlaceable = textMeasurables.first().measure(
             constraints.copy(
-                maxWidth = constraints.maxWidth * 4, maxHeight = constraints.maxHeight * 4
-            )
+                maxWidth = constraints.maxWidth * 4,
+                maxHeight = constraints.maxHeight * 4,
+            ),
         )
         val imagePlaceable = imageMeasurables.first().measure(
             constraints.copy(
                 maxWidth = textPlaceable.width * 4,
-                maxHeight = textPlaceable.height * 4
-            )
+                maxHeight = textPlaceable.height * 4,
+            ),
         )
         layout(
             width = imagePlaceable.width,
-            height = imagePlaceable.height
+            height = imagePlaceable.height,
         ) {
             imagePlaceable.placeRelative(0, 0)
 //            textPlaceable.place(imagePlaceable.width / 2, imagePlaceable.height / 2)
             textPlaceable.placeRelative(
                 x = (imagePlaceable.width / 2) - textPlaceable.width / 2,
-                y = (imagePlaceable.height / 2) - textPlaceable.height / 2
+                y = (imagePlaceable.height / 2) - textPlaceable.height / 2,
             )
         }
     }
@@ -173,10 +164,14 @@ private fun MenuButtonLayout(
 @Composable
 fun Modifier.clickableOrNot(onClick: (() -> Unit)?): Modifier {
     val interactionSource = remember { MutableInteractionSource() }
-    return if (onClick == null) this.clickable(
-        interactionSource = interactionSource,
-        indication = null
-    ) {
-        // no op
-    } else this.clickable(onClick = onClick)
+    return if (onClick == null) {
+        this.clickable(
+            interactionSource = interactionSource,
+            indication = null,
+        ) {
+            // no op
+        }
+    } else {
+        this.clickable(onClick = onClick)
+    }
 }

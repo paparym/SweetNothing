@@ -1,14 +1,20 @@
 package com.prestigerito.sweetnothing.presentation
 
+import com.prestigerito.sweetnothing.domain.Score
+import com.prestigerito.sweetnothing.domain.ScoreDataSource
 import dev.icerock.moko.mvvm.viewmodel.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
+import org.koin.core.component.get
 import kotlin.math.floor
 
 class GameViewModel : ViewModel(), KoinComponent {
+    private val scoreDataSource: ScoreDataSource = get()
     private val _state = MutableStateFlow(GameState())
     private val _score = MutableStateFlow(0)
 
@@ -44,16 +50,38 @@ class GameViewModel : ViewModel(), KoinComponent {
     }
 
     fun gameFinished() {
-        _state.update {
-            it.copy(
-                isGameInProgress = false,
-                levelState = LevelState.TryAgain,
-            )
+        val levelState = (_state.value.levelState as LevelState.Level)
+        viewModelScope.launch {
+            val currentHighScore = scoreDataSource.getAllScores().first().firstOrNull()
+            if ((currentHighScore?.highScore ?: 0) < _score.value) {
+                scoreDataSource.saveScore(
+                    score = Score(
+                        highScore = _score.value,
+                        levelIndex = levelState.index,
+                    ),
+                )
+                _state.update {
+                    it.copy(
+                        isGameInProgress = false,
+                        levelState = LevelState.NewRecord(highScore = _score.value),
+                    )
+                }
+            } else {
+                _state.update {
+                    it.copy(
+                        isGameInProgress = false,
+                        levelState = LevelState.TryAgain,
+                    )
+                }
+            }
         }
     }
 
     fun refreshGame() {
         _state.update { GameState() }
         _score.update { 0 }
+    }
+
+    fun addScoreToDb() {
     }
 }

@@ -3,6 +3,6 @@ package com.prestigerito.sweetnothing.domain
 import kotlinx.coroutines.flow.Flow
 
 interface ScoreDataSource {
-    fun saveScore(score: Int)
-    fun getAllScores(): Flow<List<Int>>
+    suspend fun saveScore(score: Score)
+    fun getAllScores(): Flow<List<Score>>
 }

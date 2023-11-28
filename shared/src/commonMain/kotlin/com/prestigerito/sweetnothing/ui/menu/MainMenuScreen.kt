@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,7 +39,6 @@ import com.prestigerito.sweetnothing.presentation.MainMenuViewModel
 import com.prestigerito.sweetnothing.ui.MenuButton
 import com.prestigerito.sweetnothing.ui.RuleButton
 import com.prestigerito.sweetnothing.ui.game.coinAssets
-import com.prestigerito.sweetnothing.ui.game.mainHeroAssets
 import dev.icerock.moko.resources.ImageResource
 import dev.icerock.moko.resources.compose.painterResource
 import dev.icerock.moko.resources.compose.stringResource
@@ -65,7 +63,7 @@ fun MainMenu(
             modifier = Modifier.fillMaxWidth()
                 .windowInsetsPadding(WindowInsets.systemBars)
                 .padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Column(
                 modifier = Modifier.weight(1f),
@@ -74,7 +72,7 @@ fun MainMenu(
                 AnimatedItem(
                     modifier = Modifier.size(100.dp),
                     assets = coinAssets,
-                    animationType = AnimationType.Y_AXIS_ROTATION
+                    animationType = AnimationType.Y_AXIS_ROTATION,
                 )
                 Spacer(modifier = Modifier.height(20.dp))
                 RuleButton(
@@ -88,17 +86,17 @@ fun MainMenu(
                 AnimatedItem(
                     modifier = Modifier.size(100.dp),
                     assets = coinAssets,
-                    animationType = AnimationType.Y_AXIS_ROTATION
+                    animationType = AnimationType.Y_AXIS_ROTATION,
                 )
                 Spacer(modifier = Modifier.height(20.dp))
                 RuleButton(
-                    text = stringResource(MR.strings.avoid)
+                    text = stringResource(MR.strings.avoid),
                 )
             }
         }
         Box(
             modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             Text(
                 modifier = Modifier.padding(top = 150.dp),
@@ -109,11 +107,13 @@ fun MainMenu(
             ) {
                 MenuButton(
                     text = stringResource(MR.strings.play),
-                    onClick = onPlayClicked
+                    onClick = onPlayClicked,
                 )
-                Button(onClick = onPlayClicked) {
-                    Text(text = stringResource(MR.strings.play))
-                }
+                MenuButton(
+                    text = stringResource(MR.strings.highScores),
+                    onClick = onHighScoresClicked,
+                    enabled = state.highScoreAvailable,
+                )
 //                Button(onClick = onSelectLevelClicked) {
 //                    Text(text = stringResource(MR.strings.selectLevel))
 //                }
@@ -131,7 +131,6 @@ fun MainMenu(
 
 @Composable
 fun AnimatedItems() {
-
 }
 
 @Composable
@@ -142,7 +141,7 @@ fun AnimatedItem(
 ) {
     var currentResource by remember {
         mutableStateOf(
-            assets.first()
+            assets.first(),
         )
     }
     val yAxisMovement = remember { Animatable(0f) }
@@ -152,15 +151,15 @@ fun AnimatedItem(
                 while (true) {
                     yAxisMovement.animateTo(
                         targetValue = 35f,
-                        animationSpec = tween(easing = LinearEasing, durationMillis = 4000)
+                        animationSpec = tween(easing = LinearEasing, durationMillis = 4000),
                     )
                     yAxisMovement.animateTo(
                         targetValue = 0f,
-                        animationSpec = tween(easing = LinearEasing)
+                        animationSpec = tween(easing = LinearEasing),
                     )
                     yAxisMovement.animateTo(
                         targetValue = -35f,
-                        animationSpec = tween(easing = LinearEasing)
+                        animationSpec = tween(easing = LinearEasing),
                     )
                 }
             }
@@ -176,7 +175,6 @@ fun AnimatedItem(
 
             AnimationType.NO_ANIMATION -> {}
         }
-
     }
     Image(
         modifier = modifier.graphicsLayer {
@@ -200,7 +198,7 @@ fun EndlessBackground(
     val offset2 = remember { Animatable(0f) }
     val animation = tween<Float>(durationMillis = 10000, easing = LinearEasing)
     BoxWithConstraints(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
     ) {
         LaunchedEffect(this.constraints.maxHeight) {
             launch {

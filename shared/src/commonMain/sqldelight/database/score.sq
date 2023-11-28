@@ -1,6 +1,7 @@
 CREATE TABLE scoreEntity (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    score INTEGER NOT NULL
+    score INTEGER NOT NULL,
+    levelIndex INTEGER NOT NULL
 );
 
 getAllScores:
@@ -11,5 +12,6 @@ insertScore:
 INSERT OR REPLACE
 INTO scoreEntity(
     id,
-    score
-) VALUES (?, ?);
+    score,
+    levelIndex
+) VALUES (?, ?, ?);
