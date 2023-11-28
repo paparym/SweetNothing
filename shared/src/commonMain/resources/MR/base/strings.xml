@@ -10,4 +10,5 @@
     <string name="score">Score %1$d</string>
     <string name="newHighScore">Congratulations!\nNew High Score %1$d</string>
     <string name="tryAgain">Try Again</string>
+    <string name="rules">Rules</string>
 </resources>

@@ -143,7 +143,7 @@ private fun MenuButtonLayout(
         )
         val imagePlaceable = imageMeasurables.first().measure(
             constraints.copy(
-                maxWidth = textPlaceable.width * 4,
+                maxWidth = constraints.maxWidth / 2,
                 maxHeight = textPlaceable.height * 4,
             ),
         )

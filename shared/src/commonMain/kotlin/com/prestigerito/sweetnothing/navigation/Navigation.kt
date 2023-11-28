@@ -27,7 +27,7 @@ object MainScreenNav : Screen {
         MainMenu(
             viewModel = viewModel,
             onPlayClicked = { navigator.push(GameScreenNav) },
-            onSelectLevelClicked = { navigator.push(GameScreenNav) },
+            onRulesClicked = { navigator.push(GameScreenNav) },
             onHighScoresClicked = { navigator.push(HighScoreScreenNav) },
         )
     }

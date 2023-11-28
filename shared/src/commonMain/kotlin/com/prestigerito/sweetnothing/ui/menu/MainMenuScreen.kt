@@ -5,21 +5,14 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -34,11 +27,11 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.prestigerito.sweetnothing.MR
 import com.prestigerito.sweetnothing.presentation.MainMenuViewModel
 import com.prestigerito.sweetnothing.ui.MenuButton
-import com.prestigerito.sweetnothing.ui.RuleButton
-import com.prestigerito.sweetnothing.ui.game.coinAssets
+import com.prestigerito.sweetnothing.ui.game.mainHeroAssets
 import dev.icerock.moko.resources.ImageResource
 import dev.icerock.moko.resources.compose.painterResource
 import dev.icerock.moko.resources.compose.stringResource
@@ -49,8 +42,8 @@ import kotlinx.coroutines.launch
 fun MainMenu(
     viewModel: MainMenuViewModel,
     onPlayClicked: () -> Unit,
-    onSelectLevelClicked: () -> Unit,
     onHighScoresClicked: () -> Unit,
+    onRulesClicked: () -> Unit,
 ) {
     val state by viewModel.state.collectAsState()
     Box(
@@ -59,78 +52,42 @@ fun MainMenu(
         EndlessBackground(
             asset = MR.images.symbol_bg,
         )
-        Row(
-            modifier = Modifier.fillMaxWidth()
-                .windowInsetsPadding(WindowInsets.systemBars)
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Column(
-                modifier = Modifier.weight(1f),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                AnimatedItem(
-                    modifier = Modifier.size(100.dp),
-                    assets = coinAssets,
-                    animationType = AnimationType.Y_AXIS_ROTATION,
-                )
-                Spacer(modifier = Modifier.height(20.dp))
-                RuleButton(
-                    text = stringResource(MR.strings.grab),
-                )
-            }
-            Column(
-                modifier = Modifier.weight(1f),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                AnimatedItem(
-                    modifier = Modifier.size(100.dp),
-                    assets = coinAssets,
-                    animationType = AnimationType.Y_AXIS_ROTATION,
-                )
-                Spacer(modifier = Modifier.height(20.dp))
-                RuleButton(
-                    text = stringResource(MR.strings.avoid),
-                )
-            }
-        }
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center,
         ) {
-            Text(
-                modifier = Modifier.padding(top = 150.dp),
-                text = stringResource(MR.strings.sweetNothing),
-            )
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
+                Text(
+                    modifier = Modifier,
+                    text = stringResource(MR.strings.sweetNothing),
+                    fontSize = 30.sp,
+                )
+                AnimatedItem(
+                    modifier = Modifier.size(100.dp),
+                    assets = mainHeroAssets,
+                    animationType = AnimationType.ASSET_CHANGE,
+                )
+                Spacer(modifier = Modifier.height(20.dp))
                 MenuButton(
                     text = stringResource(MR.strings.play),
                     onClick = onPlayClicked,
                 )
+                Spacer(modifier = Modifier.height(10.dp))
                 MenuButton(
                     text = stringResource(MR.strings.highScores),
                     onClick = onHighScoresClicked,
                     enabled = state.highScoreAvailable,
                 )
-//                Button(onClick = onSelectLevelClicked) {
-//                    Text(text = stringResource(MR.strings.selectLevel))
-//                }
-//                Button(onClick = onHighScoresClicked) {
-//                    Text(text = stringResource(MR.strings.highScores))
-//                }
-//                AnimatedItem(
-//                    modifier = Modifier.size(100.dp),
-//                    assets = mainHeroAssets,
-//                )
+                Spacer(modifier = Modifier.height(10.dp))
+                MenuButton(
+                    text = stringResource(MR.strings.rules),
+                    onClick = onRulesClicked,
+                )
             }
         }
     }
-}
-
-@Composable
-fun AnimatedItems() {
 }
 
 @Composable
