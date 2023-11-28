@@ -24,3 +24,10 @@ val coinAssets = listOf(
     MR.images.coin13,
     MR.images.coin14,
 )
+val enemy1Asset = listOf(
+    MR.images.death_1
+)
+
+val enemy2Asset = listOf(
+    MR.images.death_2
+)

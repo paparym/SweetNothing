@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.prestigerito.sweetnothing.presentation.GameViewModel
 import com.prestigerito.sweetnothing.presentation.MainMenuViewModel
 import com.prestigerito.sweetnothing.ui.game.GameScreen
 import com.prestigerito.sweetnothing.ui.menu.MainMenu
@@ -34,7 +35,14 @@ object GameScreenNav : Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
+        val viewModel = getViewModel(
+            key = "game-screen",
+            factory = viewModelFactory {
+                GameViewModel()
+            },
+        )
         GameScreen(
+            viewModel = viewModel,
             onBack = { navigator.pop() }
         )
     }

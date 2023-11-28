@@ -1,16 +1,9 @@
 package com.prestigerito.sweetnothing.ui.game
 
-import androidx.compose.animation.animateColor
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.VectorConverter
-import androidx.compose.animation.core.animateValue
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
@@ -28,6 +21,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,7 +30,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -44,9 +37,11 @@ import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.prestigerito.sweetnothing.MR
+import com.prestigerito.sweetnothing.presentation.GameViewModel
 import com.prestigerito.sweetnothing.ui.menu.AnimatedItem
 import com.prestigerito.sweetnothing.ui.menu.AnimationType
 import dev.icerock.moko.resources.ImageResource
@@ -57,11 +52,17 @@ import kotlin.math.roundToInt
 
 @Composable
 fun GameScreen(
+    viewModel: GameViewModel,
     onBack: () -> Unit,
 ) {
+    val state by viewModel.state.collectAsState()
+    val score by viewModel.score.collectAsState()
     var heroCoordinates by remember { mutableStateOf(Rect.Zero) }
 
-    var score by remember { mutableStateOf(0) }
+//    var score by remember { mutableStateOf(0) }
+    var gameInProgress by remember { mutableStateOf(true) }
+    var currentLevel by remember { mutableStateOf(Level()) }
+//    val levelInfoState = rememberLevelInfoState()
 
 //    val backgroundColor by animateColorAsState(
 //        targetValue = when {
@@ -73,7 +74,7 @@ fun GameScreen(
 
     BoxWithConstraints(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxSize(),
 //            .background(backgroundColor)
 //            .windowInsetsPadding(WindowInsets.systemBars),
     ) {
@@ -91,21 +92,63 @@ fun GameScreen(
                 .windowInsetsPadding(WindowInsets.systemBars),
             text = "Score: $score",
         )
-        // Coins
-        repeat(10) {
+        Text(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .padding(16.dp)
+                .windowInsetsPadding(WindowInsets.systemBars),
+            text = "Level: ${state.level}",
+        )
+        // Enemies
+        repeat(state.enemy1.amount) {
             FallingItem(
                 modifier = Modifier,
                 screenHeightPx = constraints.maxHeight.toFloat(),
                 screenWidthPx = constraints.maxWidth.toFloat(),
-                heroCoordinates = heroCoordinates,
+                heroCoordinates = { heroCoordinates },
                 startDelay = it * 200L,
-                animationType = AnimationType.Y_AXIS_ROTATION,
-                assets = coinAssets,
-                speed = if (score > 20) 2000 else 3000,
-                gameInProgress = score <= 10,
+                animationType = AnimationType.NO_ANIMATION,
+                assets = enemy1Asset,
+                speed = state.enemy1.speed,
+                gameInProgress = gameInProgress,
                 onCollision = {
-                    score++
-                }
+                    gameInProgress = false
+                },
+            )
+        }
+
+        if (state.enemy2.amount > 0) {
+            repeat(state.enemy2.amount) {
+                FallingItem(
+                    modifier = Modifier,
+                    screenHeightPx = constraints.maxHeight.toFloat(),
+                    screenWidthPx = constraints.maxWidth.toFloat(),
+                    heroCoordinates = { heroCoordinates },
+                    startDelay = it * 250L,
+                    animationType = AnimationType.NO_ANIMATION,
+                    assets = enemy2Asset,
+                    speed = state.enemy2.speed,
+                    gameInProgress = gameInProgress,
+                    onCollision = {
+                        gameInProgress = false
+                    },
+                )
+            }
+        }
+
+        // Coins
+        repeat(state.coin.amount) {
+            FallingItem(
+                modifier = Modifier,
+                screenHeightPx = constraints.maxHeight.toFloat(),
+                screenWidthPx = constraints.maxWidth.toFloat(),
+                heroCoordinates = { heroCoordinates },
+                startDelay = it * 200L,
+                animationType = AnimationType.NO_ANIMATION,
+                assets = coinAssets,
+                speed = state.coin.speed,
+                gameInProgress = gameInProgress,
+                onCollision = viewModel::addScore,
             )
         }
 
@@ -115,10 +158,11 @@ fun GameScreen(
                 .padding(16.dp)
                 .clickable { onBack.invoke() },
             imageVector = Icons.Default.ArrowBack,
-            contentDescription = null
+            contentDescription = null,
         )
 
         DraggableHero(
+            heroSize = 60.dp,
             heroCoordinates = { coordinates ->
                 heroCoordinates = coordinates
             },
@@ -129,12 +173,12 @@ fun GameScreen(
 @Composable
 private fun DraggableHero(
     modifier: Modifier = Modifier,
+    heroSize: Dp = 100.dp,
     heroCoordinates: (Rect) -> Unit,
 ) {
     val density = LocalDensity.current
     var offsetX by remember { mutableStateOf(0f) }
     var direction by remember { mutableStateOf(HeroDirection.RIGHT) }
-    val heroSize by remember { mutableStateOf(100.dp) }
     var endBound by remember { mutableStateOf(0f) }
 
     Box(
@@ -187,8 +231,9 @@ enum class HeroDirection {
 fun FallingItem(
     modifier: Modifier = Modifier,
     screenHeightPx: Float,
+    itemSizeDp: Dp = 30.dp,
     screenWidthPx: Float,
-    heroCoordinates: Rect,
+    heroCoordinates: () -> Rect,
     startDelay: Long = 0L,
     animationType: AnimationType = AnimationType.Y_AXIS_ROTATION,
     assets: List<ImageResource> = coinAssets,
@@ -197,7 +242,6 @@ fun FallingItem(
     onCollision: () -> Unit,
 ) {
     val density = LocalDensity.current
-    val itemSizeDp = 50.dp
     val itemSizePx = with(density) { itemSizeDp.toPx() }
 
     val yAnimation = remember {
@@ -228,8 +272,8 @@ fun FallingItem(
                 targetValue = screenHeightPx,
                 animationSpec = tween(
                     durationMillis = speed,
-                    easing = LinearEasing
-                )
+                    easing = LinearEasing,
+                ),
             )
             xAnimation.snapTo(targetValue = randomHorizontalPosition())
             yAnimation.snapTo(targetValue = -itemSizePx)
@@ -243,7 +287,7 @@ fun FallingItem(
             animationSpec = tween(
                 durationMillis = 350,
                 easing = LinearEasing,
-            )
+            ),
         )
     }
     LaunchedEffect(gameInProgress) {
@@ -254,14 +298,14 @@ fun FallingItem(
                 animationSpec = tween(
                     durationMillis = 1000,
                     delayMillis = 500,
-                )
+                ),
             )
         }
     }
 
     AnimatedItem(
         modifier = modifier
-            .size(50.dp)
+            .size(itemSizeDp)
             .graphicsLayer {
                 translationY = yAnimation.value
                 translationX = xAnimation.value
@@ -269,7 +313,9 @@ fun FallingItem(
             }
             .onGloballyPositioned { coordinates ->
                 itemCoordinates = coordinates.boundsInRoot()
-                if (coordinates.boundsInRoot().overlaps(heroCoordinates) && gameInProgress) {
+                if (coordinates.boundsInRoot()
+                        .overlaps(heroCoordinates.invoke()) && gameInProgress
+                ) {
                     coroutineScope.launch {
                         yAnimation.snapTo(-itemSizePx)
                         xAnimation.snapTo(targetValue = randomHorizontalPosition())
@@ -296,75 +342,4 @@ enum class AnimationHelper {
             IN_PROGRESS_TOGGLE_ON
         }
     }
-}
-
-@Composable
-fun FallingRain(
-    modifier: Modifier = Modifier,
-    screenHeightPx: Float,
-    rainCoordinates: (Rect) -> Unit,
-) {
-    val infiniteTransition = rememberInfiniteTransition()
-
-    val color by infiniteTransition.animateColor(
-        initialValue = Color.Red,
-        targetValue = Color.Green,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1000, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse,
-        ),
-    )
-    val y by infiniteTransition.animateValue(
-        initialValue = 0f,
-        targetValue = screenHeightPx,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1000, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse,
-        ),
-        typeConverter = Float.VectorConverter,
-    )
-
-    Box(
-        modifier = modifier
-            .size(100.dp)
-            .graphicsLayer {
-                translationY = y
-            }
-            .background(color)
-            .onGloballyPositioned { coordinates ->
-                rainCoordinates(coordinates.boundsInRoot())
-            },
-    )
-}
-
-fun areComposablesOverlapping(
-    composable1Bounds: Rect,
-    composable2Bounds: Rect,
-): Boolean {
-    // Check for horizontal overlap
-    val horizontalOverlap = (
-            composable1Bounds.left <= composable2Bounds.right &&
-                    composable1Bounds.right >= composable2Bounds.left
-            )
-
-    // Check for vertical overlap
-    val verticalOverlap = (
-            composable1Bounds.top <= composable2Bounds.bottom &&
-                    composable1Bounds.bottom >= composable2Bounds.top
-            )
-
-    // Return true if both horizontal and vertical overlap is true
-    return horizontalOverlap && verticalOverlap
-}
-
-fun areComposablesOverlapping(
-    composable1BoundsList: List<Rect>,
-    composable2Bounds: Rect,
-): Boolean {
-    for (composable1Bound in composable1BoundsList) {
-        if (composable1Bound.overlaps(composable2Bounds)) {
-            return true
-        }
-    }
-    return false
 }
