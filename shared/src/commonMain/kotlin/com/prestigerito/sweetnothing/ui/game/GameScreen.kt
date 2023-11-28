@@ -58,29 +58,35 @@ fun GameScreen(
     val state by viewModel.state.collectAsState()
     val score by viewModel.score.collectAsState()
     var heroCoordinates by remember { mutableStateOf(Rect.Zero) }
-
-//    var score by remember { mutableStateOf(0) }
     var gameInProgress by remember { mutableStateOf(true) }
-    var currentLevel by remember { mutableStateOf(Level()) }
-//    val levelInfoState = rememberLevelInfoState()
 
-//    val backgroundColor by animateColorAsState(
-//        targetValue = when {
-//            heroCoordinates.overlaps(coinCoordinates) -> Color.Red
-//            isCollisionHeroCoin -> Color.Yellow
-//            else -> Color.White
-//        },
-//    )
-
+    val density = LocalDensity.current
+    var offsetX by remember { mutableStateOf(0f) }
+    var direction by remember { mutableStateOf(HeroDirection.RIGHT) }
+    var endBound by remember { mutableStateOf(0f) }
+    val heroSize = 60.dp
     BoxWithConstraints(
         modifier = Modifier
-            .fillMaxSize(),
-//            .background(backgroundColor)
-//            .windowInsetsPadding(WindowInsets.systemBars),
+            .onSizeChanged { endBound = it.width.toFloat() - with(density) { heroSize.toPx() } }
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                detectDragGestures { change, dragAmount ->
+                    change.consume()
+                    direction = when {
+                        dragAmount.x < -2f -> HeroDirection.LEFT
+                        dragAmount.x > 2f -> HeroDirection.RIGHT
+                        else -> direction
+                    }
+                    val dragWithBounds = (offsetX + dragAmount.x).coerceIn(
+                        minimumValue = 0f,
+                        maximumValue = endBound,
+                    )
+                    offsetX = dragWithBounds
+                }
+            },
     ) {
         Image(
             modifier = Modifier.fillMaxSize(),
-//                .windowInsetsPadding(WindowInsets.systemBars),
             painter = painterResource(MR.images.white_bg),
             contentDescription = null,
             contentScale = ContentScale.FillHeight,
@@ -162,7 +168,9 @@ fun GameScreen(
         )
 
         DraggableHero(
-            heroSize = 60.dp,
+            heroSize = heroSize,
+            offsetX = { offsetX.roundToInt() },
+            direction = direction,
             heroCoordinates = { coordinates ->
                 heroCoordinates = coordinates
             },
@@ -174,34 +182,15 @@ fun GameScreen(
 private fun DraggableHero(
     modifier: Modifier = Modifier,
     heroSize: Dp = 100.dp,
+    offsetX: () -> Int,
+    direction: HeroDirection,
     heroCoordinates: (Rect) -> Unit,
 ) {
-    val density = LocalDensity.current
-    var offsetX by remember { mutableStateOf(0f) }
-    var direction by remember { mutableStateOf(HeroDirection.RIGHT) }
-    var endBound by remember { mutableStateOf(0f) }
-
     Box(
         modifier = modifier
-            .onSizeChanged { endBound = it.width.toFloat() - with(density) { heroSize.toPx() } }
             .fillMaxSize()
-            .offset { IntOffset(offsetX.roundToInt(), 0) }
-            .padding(bottom = 50.dp)
-            .pointerInput(Unit) {
-                detectDragGestures { change, dragAmount ->
-                    change.consume()
-                    direction = when {
-                        dragAmount.x < -2f -> HeroDirection.LEFT
-                        dragAmount.x > 2f -> HeroDirection.RIGHT
-                        else -> direction
-                    }
-                    val dragWithBounds = (offsetX + dragAmount.x).coerceIn(
-                        minimumValue = 0f,
-                        maximumValue = endBound,
-                    )
-                    offsetX = dragWithBounds
-                }
-            },
+            .offset { IntOffset(offsetX.invoke(), 0) }
+            .padding(bottom = 50.dp),
         contentAlignment = Alignment.BottomStart,
     ) {
         AnimatedItem(
