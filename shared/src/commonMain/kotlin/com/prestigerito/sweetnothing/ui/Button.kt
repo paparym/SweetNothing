@@ -36,6 +36,7 @@ import dev.icerock.moko.resources.compose.painterResource
 
 @Composable
 fun RuleButton(
+    modifier: Modifier = Modifier,
     text: String,
     onClick: (() -> Unit)? = null,
 ) {
@@ -53,7 +54,9 @@ fun RuleButton(
         btn_gradient_blue_dark,
         btn_gradient_blue_light,
     )
-    BoxWithConstraints {
+    BoxWithConstraints(
+        modifier = modifier,
+    ) {
         val gradientValue by infiniteTransition.animateFloat(
             initialValue = 0.0f,
             targetValue = constraints.maxWidth.toFloat() * 2,

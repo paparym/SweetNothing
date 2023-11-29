@@ -45,7 +45,7 @@ object GameScreenNav : Screen {
         )
         GameScreen(
             viewModel = viewModel,
-            onBack = { navigator.pop() },
+            onBack = { navigator.popUntilRoot() },
         )
     }
 }
@@ -72,6 +72,7 @@ object RulesScreenNav : Screen {
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
         RulesScreen(
+            onStartGame = { navigator.push(GameScreenNav) },
             onBack = { navigator.pop() },
         )
     }

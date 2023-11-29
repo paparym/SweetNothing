@@ -65,10 +65,6 @@ fun GameScreen(
     var direction by remember { mutableStateOf(HeroDirection.RIGHT) }
     var endBound by remember { mutableStateOf(0f) }
     val heroSize = 60.dp
-    LaunchedEffect(key1 = state.isGameInProgress) {
-        if (!state.isGameInProgress) {
-        }
-    }
     BoxWithConstraints(
         modifier = Modifier
             .onSizeChanged { endBound = it.width.toFloat() - with(density) { heroSize.toPx() } }
@@ -113,7 +109,6 @@ fun GameScreen(
                 .windowInsetsPadding(WindowInsets.systemBars),
             text = stringResource(MR.strings.score, score),
         )
-        println("--> state.levelState ${state.levelState}")
         Text(
             modifier = Modifier
                 .align(Alignment.Center)
