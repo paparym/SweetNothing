@@ -11,4 +11,6 @@
     <string name="newHighScore">Congratulations!\nNew High Score %1$d</string>
     <string name="tryAgain">Try Again</string>
     <string name="rules">Rules</string>
+    <string name="highestScore">Highest Score %1$d</string>
+    <string name="atLevel">at Level %1$d</string>
 </resources>

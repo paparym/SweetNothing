@@ -10,11 +10,11 @@ import com.prestigerito.sweetnothing.presentation.MainMenuViewModel
 import com.prestigerito.sweetnothing.ui.game.GameScreen
 import com.prestigerito.sweetnothing.ui.highscore.HighScoreScreen
 import com.prestigerito.sweetnothing.ui.menu.MainMenu
+import com.prestigerito.sweetnothing.ui.rules.RulesScreen
 import dev.icerock.moko.mvvm.compose.getViewModel
 import dev.icerock.moko.mvvm.compose.viewModelFactory
 
 object MainScreenNav : Screen {
-
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
@@ -27,7 +27,7 @@ object MainScreenNav : Screen {
         MainMenu(
             viewModel = viewModel,
             onPlayClicked = { navigator.push(GameScreenNav) },
-            onRulesClicked = { navigator.push(GameScreenNav) },
+            onRulesClicked = { navigator.push(RulesScreenNav) },
             onHighScoresClicked = { navigator.push(HighScoreScreenNav) },
         )
     }
@@ -62,6 +62,16 @@ object HighScoreScreenNav : Screen {
         )
         HighScoreScreen(
             viewModel = viewModel,
+            onBack = { navigator.pop() },
+        )
+    }
+}
+
+object RulesScreenNav : Screen {
+    @Composable
+    override fun Content() {
+        val navigator = LocalNavigator.currentOrThrow
+        RulesScreen(
             onBack = { navigator.pop() },
         )
     }

@@ -150,6 +150,7 @@ enum class AnimationType {
 @Composable
 fun EndlessBackground(
     asset: ImageResource,
+    topToBottom: Boolean = true,
 ) {
     val offset = remember { Animatable(0f) }
     val offset2 = remember { Animatable(0f) }
@@ -157,10 +158,15 @@ fun EndlessBackground(
     BoxWithConstraints(
         modifier = Modifier.fillMaxSize(),
     ) {
+        val targetValue = if (topToBottom) {
+            constraints.maxHeight.toFloat()
+        } else {
+            -constraints.maxHeight.toFloat()
+        }
         LaunchedEffect(this.constraints.maxHeight) {
             launch {
                 offset.animateTo(
-                    targetValue = constraints.maxHeight.toFloat(),
+                    targetValue = targetValue,
                     animationSpec = infiniteRepeatable(
                         animation = animation,
                     ),
@@ -168,19 +174,24 @@ fun EndlessBackground(
             }
             launch {
                 offset2.animateTo(
-                    targetValue = constraints.maxHeight.toFloat(),
+                    targetValue = targetValue,
                     animationSpec = infiniteRepeatable(
                         animation = animation,
                     ),
                 )
             }
         }
+        val offsetY = if (topToBottom) {
+            -(constraints.maxHeight.toFloat().toInt()) + (offset2.value.toInt())
+        } else {
+            (constraints.maxHeight.toFloat().toInt()) + (offset2.value.toInt())
+        }
         Image(
             modifier = Modifier
                 .fillMaxSize()
                 .offset {
                     IntOffset(
-                        y = -(constraints.maxHeight.toFloat().toInt()) + (offset2.value.toInt()),
+                        y = offsetY,
                         x = 0,
                     )
                 },
