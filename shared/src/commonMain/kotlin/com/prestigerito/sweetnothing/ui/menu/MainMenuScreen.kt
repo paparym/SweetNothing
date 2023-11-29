@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.prestigerito.sweetnothing.MR
+import com.prestigerito.sweetnothing.platformDependentAnimationType
 import com.prestigerito.sweetnothing.presentation.MainMenuViewModel
 import com.prestigerito.sweetnothing.ui.MenuButton
 import com.prestigerito.sweetnothing.ui.game.mainHeroAssets
@@ -67,7 +68,7 @@ fun MainMenu(
                 AnimatedItem(
                     modifier = Modifier.size(100.dp),
                     assets = mainHeroAssets,
-                    animationType = AnimationType.ASSET_CHANGE,
+                    animationType = platformDependentAnimationType(AnimationType.ASSET_CHANGE),
                 )
                 Spacer(modifier = Modifier.height(20.dp))
                 MenuButton(

@@ -45,7 +45,7 @@ object GameScreenNav : Screen {
         )
         GameScreen(
             viewModel = viewModel,
-            onBack = { navigator.popUntilRoot() },
+            onBack = { navigator.popAll() },
         )
     }
 }
