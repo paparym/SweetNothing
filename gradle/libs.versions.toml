@@ -23,7 +23,9 @@ buildKonfig = "0.13.3"
 kover = "0.6.1"
 mockk = "1.13.5"
 kotlinxTestResources = "0.2.2"
-voyager = "1.0.0-rc06"
+voyager = "1.0.0-rc10"
+decompose = "2.2.0-alpha03"
+decomposeExtensions = "2.1.4-compose-experimental"
 
 #Android Versions
 
@@ -37,7 +39,7 @@ appCompat = "1.4.1"
 constraintLayout = "2.1.4"
 
 compose-animation = "1.5.4"
-compose-compiler = "1.5.3"
+compose-compiler = "1.5.4"
 compose-jetbrains = "1.5.10"
 compose-foundation = "1.5.4"
 compose-material = "1.5.4"
@@ -135,6 +137,8 @@ voyager-koin = { module = "cafe.adriel.voyager:voyager-koin", version.ref = "voy
 voyager-navigator = { module = "cafe.adriel.voyager:voyager-navigator", version.ref = "voyager" }
 voyager-tabNavigator = { module = "cafe.adriel.voyager:voyager-tab-navigator", version.ref = "voyager" }
 voyager-kodein = { module = "cafe.adriel.voyager:voyager-kodein", version.ref = "voyager" }
+decompose-core = { module = "com.arkivanov.decompose:decompose", version.ref = "decompose" }
+decompose-extensions = { module = "com.arkivanov.decompose:extensions-compose-jetbrains", version.ref = "decomposeExtensions" }
 
 #Android Lib Dependencies
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }

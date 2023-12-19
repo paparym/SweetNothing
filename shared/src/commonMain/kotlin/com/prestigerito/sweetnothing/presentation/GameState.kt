@@ -15,6 +15,7 @@ data class GameState(
     ),
     val isGameInProgress: Boolean = true,
     val levelState: LevelState = LevelState.Level(1),
+    val isLoading: Boolean = true,
 )
 
 sealed interface LevelState {

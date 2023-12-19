@@ -23,16 +23,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.prestigerito.sweetnothing.MR
-import com.prestigerito.sweetnothing.presentation.HighScoreViewModel
+import com.prestigerito.sweetnothing.presentation.highscores.HighScoreComponent
 import com.prestigerito.sweetnothing.ui.menu.EndlessBackground
 import dev.icerock.moko.resources.compose.stringResource
 
 @Composable
-fun HighScoreScreen(
-    viewModel: HighScoreViewModel,
-    onBack: () -> Unit,
-) {
-    val state by viewModel.state.collectAsState()
+fun HighScoreScreen(component: HighScoreComponent) {
+    val state by component.state.collectAsState()
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
@@ -46,7 +43,7 @@ fun HighScoreScreen(
                 .windowInsetsPadding(WindowInsets.systemBars)
                 .padding(16.dp)
                 .align(Alignment.TopStart)
-                .clickable { onBack.invoke() },
+                .clickable { component.goBack() },
             imageVector = Icons.Default.ArrowBack,
             contentDescription = null,
         )

@@ -53,6 +53,8 @@ kotlin {
                 implementation(libs.ktor.serialization)
                 implementation(libs.ktor.json)
 
+                implementation(libs.kotlinX.serializationJson)
+
                 implementation(libs.moko.mvvm)
                 implementation(libs.moko.mvvmCompose)
                 implementation(libs.moko.mvvmFlow)
@@ -68,6 +70,9 @@ kotlin {
 
                 api(libs.moko.resources)
                 api(libs.moko.resourcesCompose)
+
+                implementation(libs.decompose.core)
+                implementation(libs.decompose.extensions)
             }
         }
         val commonTest by getting {
@@ -84,9 +89,11 @@ kotlin {
                 implementation(libs.compose.activity)
                 implementation(libs.ktor.android)
                 implementation(libs.koin.android)
+                implementation(libs.decompose.core)
             }
         }
         val iosMain by getting {
+            dependsOn(commonMain)
             dependencies {
                 implementation(libs.sqlDelight.native)
                 implementation(libs.ktor.ios)

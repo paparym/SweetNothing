@@ -41,23 +41,24 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.prestigerito.sweetnothing.MR
-import com.prestigerito.sweetnothing.presentation.GameViewModel
+import com.prestigerito.sweetnothing.presentation.game.GameComponent
 import com.prestigerito.sweetnothing.ui.menu.AnimatedItem
 import com.prestigerito.sweetnothing.ui.menu.AnimationType
 import dev.icerock.moko.resources.ImageResource
 import dev.icerock.moko.resources.compose.painterResource
 import dev.icerock.moko.resources.compose.stringResource
+import io.kamel.image.KamelImage
+import io.kamel.image.asyncPainterResource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 @Composable
 fun GameScreen(
-    viewModel: GameViewModel,
-    onBack: () -> Unit,
+    component: GameComponent,
 ) {
-    val state by viewModel.state.collectAsState()
-    val score by viewModel.score.collectAsState()
+    val state by component.state.collectAsState()
+    val score by component.score.collectAsState()
     var heroCoordinates by remember { mutableStateOf(Rect.Zero) }
 
     val density = LocalDensity.current
@@ -72,7 +73,7 @@ fun GameScreen(
             .then(
                 if (!state.isGameInProgress) {
                     Modifier.clickable {
-                        viewModel.refreshGame()
+                        component.refreshGame()
                     }
                 } else {
                     Modifier
@@ -128,7 +129,7 @@ fun GameScreen(
                     animationType = AnimationType.NO_ANIMATION,
                     assets = enemy1Asset,
                     speed = state.enemy1.speed,
-                    onCollision = { viewModel.gameFinished() },
+                    onCollision = { component.gameFinished() },
                 )
             }
             if (state.enemy2.amount > 0) {
@@ -142,7 +143,7 @@ fun GameScreen(
                         animationType = AnimationType.NO_ANIMATION,
                         assets = enemy2Asset,
                         speed = state.enemy2.speed,
-                        onCollision = { viewModel.gameFinished() },
+                        onCollision = { component.gameFinished() },
                     )
                 }
             }
@@ -157,7 +158,7 @@ fun GameScreen(
                     animationType = AnimationType.NO_ANIMATION,
                     assets = coinAssets,
                     speed = state.coin.speed,
-                    onCollision = viewModel::addScore,
+                    onCollision = component::addScore,
                 )
             }
         }
@@ -166,7 +167,7 @@ fun GameScreen(
             modifier = Modifier
                 .windowInsetsPadding(WindowInsets.systemBars)
                 .padding(16.dp)
-                .clickable { onBack.invoke() },
+                .clickable { component.goBack() },
             imageVector = Icons.Default.ArrowBack,
             contentDescription = null,
         )

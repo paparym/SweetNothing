@@ -1,8 +1,13 @@
-package com.prestigerito.sweetnothing.presentation
+package com.prestigerito.sweetnothing.presentation.game
 
+import com.arkivanov.decompose.ComponentContext
 import com.prestigerito.sweetnothing.domain.Score
 import com.prestigerito.sweetnothing.domain.ScoreDataSource
-import dev.icerock.moko.mvvm.viewmodel.ViewModel
+import com.prestigerito.sweetnothing.navigation.coroutineScope
+import com.prestigerito.sweetnothing.presentation.GameState
+import com.prestigerito.sweetnothing.presentation.LevelState
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.first
@@ -11,21 +16,27 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
+import kotlin.coroutines.CoroutineContext
 import kotlin.math.floor
 
-class GameViewModel : ViewModel(), KoinComponent {
+class GameComponent(
+    componentContext: ComponentContext,
+    private val onBack: () -> Unit,
+    mainContext: CoroutineContext,
+) : ComponentContext by componentContext, KoinComponent {
+    private val scope = coroutineScope(mainContext + SupervisorJob())
     private val scoreDataSource: ScoreDataSource = get()
     private val _state = MutableStateFlow(GameState())
     private val _score = MutableStateFlow(0)
 
     val score = _score.stateIn(
-        scope = viewModelScope,
+        scope = scope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = 0,
     )
 
     val state = _state.stateIn(
-        scope = viewModelScope,
+        scope = scope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = GameState(),
     )
@@ -51,7 +62,7 @@ class GameViewModel : ViewModel(), KoinComponent {
 
     fun gameFinished() {
         val levelState = (_state.value.levelState as LevelState.Level)
-        viewModelScope.launch {
+        scope.launch {
             val currentHighScore = scoreDataSource.getAllScores().first().firstOrNull()
             if ((currentHighScore?.highScore ?: 0) < _score.value) {
                 scoreDataSource.saveScore(
@@ -78,10 +89,10 @@ class GameViewModel : ViewModel(), KoinComponent {
     }
 
     fun refreshGame() {
-        _state.update { GameState() }
+        _state.update { GameState(isLoading = false) }
         _score.update { 0 }
     }
 
-    fun addScoreToDb() {
-    }
+    fun goBack() = onBack.invoke()
+    fun enableGame() = _state.update { it.copy(isLoading = false) }
 }

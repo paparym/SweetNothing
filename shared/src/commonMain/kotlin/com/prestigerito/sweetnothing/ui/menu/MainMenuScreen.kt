@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.prestigerito.sweetnothing.MR
 import com.prestigerito.sweetnothing.platformDependentAnimationType
-import com.prestigerito.sweetnothing.presentation.MainMenuViewModel
+import com.prestigerito.sweetnothing.presentation.menu.MainMenuComponent
 import com.prestigerito.sweetnothing.ui.MenuButton
 import com.prestigerito.sweetnothing.ui.game.mainHeroAssets
 import dev.icerock.moko.resources.ImageResource
@@ -41,12 +41,9 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun MainMenu(
-    viewModel: MainMenuViewModel,
-    onPlayClicked: () -> Unit,
-    onHighScoresClicked: () -> Unit,
-    onRulesClicked: () -> Unit,
+    component: MainMenuComponent,
 ) {
-    val state by viewModel.state.collectAsState()
+    val state by component.state.collectAsState()
     Box(
         modifier = Modifier.fillMaxSize(),
     ) {
@@ -73,18 +70,18 @@ fun MainMenu(
                 Spacer(modifier = Modifier.height(20.dp))
                 MenuButton(
                     text = stringResource(MR.strings.play),
-                    onClick = onPlayClicked,
+                    onClick = component::onPlayClicked,
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 MenuButton(
                     text = stringResource(MR.strings.highScores),
-                    onClick = onHighScoresClicked,
+                    onClick = component::onHighScoresClicked,
                     enabled = state.highScoreAvailable,
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 MenuButton(
                     text = stringResource(MR.strings.rules),
-                    onClick = onRulesClicked,
+                    onClick = component::onRulesClicked,
                 )
             }
         }
