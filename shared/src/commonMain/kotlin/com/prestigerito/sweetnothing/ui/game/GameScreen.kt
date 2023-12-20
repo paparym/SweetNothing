@@ -3,7 +3,7 @@ package com.prestigerito.sweetnothing.ui.game
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
@@ -30,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -45,7 +46,6 @@ import com.prestigerito.sweetnothing.presentation.game.GameComponent
 import com.prestigerito.sweetnothing.ui.menu.AnimatedItem
 import com.prestigerito.sweetnothing.ui.menu.AnimationType
 import dev.icerock.moko.resources.ImageResource
-import dev.icerock.moko.resources.compose.painterResource
 import dev.icerock.moko.resources.compose.stringResource
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
@@ -97,12 +97,21 @@ fun GameScreen(
                 }
             },
     ) {
-        Image(
+        // we're doing this trick until Moko is fixed in 0.24 to show the local images
+        KamelImage(
             modifier = Modifier.fillMaxSize(),
-            painter = painterResource(MR.images.white_bg),
+            resource = asyncPainterResource(data = "https://raw.githubusercontent.com/paparym/SweetNothing/master/shared/src/commonMain/resources/MR/images/white_bg%401x.jpg"),
             contentDescription = null,
             contentScale = ContentScale.FillHeight,
+            animationSpec = tween(durationMillis = 500),
+            onLoading = { Box(modifier = Modifier.background(Color.White).fillMaxSize()) },
         )
+//        Image(
+//            modifier = Modifier.fillMaxSize(),
+//            painter = painterResource(MR.images.white_bg),
+//            contentDescription = null,
+//            contentScale = ContentScale.FillHeight,
+//        )
         Text(
             modifier = Modifier
                 .align(Alignment.TopEnd)

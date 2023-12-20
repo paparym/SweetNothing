@@ -5,6 +5,7 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -23,6 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.IntOffset
@@ -36,6 +38,8 @@ import com.prestigerito.sweetnothing.ui.game.mainHeroAssets
 import dev.icerock.moko.resources.ImageResource
 import dev.icerock.moko.resources.compose.painterResource
 import dev.icerock.moko.resources.compose.stringResource
+import io.kamel.image.KamelImage
+import io.kamel.image.asyncPainterResource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -184,26 +188,50 @@ fun EndlessBackground(
         } else {
             (constraints.maxHeight.toFloat().toInt()) + (offset2.value.toInt())
         }
-        Image(
-            modifier = Modifier
-                .fillMaxSize()
+        // we're doing this trick until Moko is fixed in 0.24 to show the local images
+        KamelImage(
+            modifier = Modifier.fillMaxSize()
                 .offset {
                     IntOffset(
                         y = offsetY,
                         x = 0,
                     )
                 },
-            painter = painterResource(asset),
+            resource = asyncPainterResource(data = "https://raw.githubusercontent.com/paparym/SweetNothing/master/shared/src/commonMain/resources/MR/images/symbol_bg%401x.png"),
             contentDescription = null,
             contentScale = ContentScale.FillBounds,
+            animationSpec = tween(durationMillis = 500),
+            onLoading = { Box(modifier = Modifier.background(Color.White).fillMaxSize()) },
         )
-        Image(
-            modifier = Modifier
-                .fillMaxSize()
+//        Image(
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .offset {
+//                    IntOffset(
+//                        y = offsetY,
+//                        x = 0,
+//                    )
+//                },
+//            painter = painterResource(asset),
+//            contentDescription = null,
+//            contentScale = ContentScale.FillBounds,
+//        )
+        KamelImage(
+            modifier = Modifier.fillMaxSize()
                 .offset { IntOffset(y = offset.value.toInt(), x = 0) },
-            painter = painterResource(asset),
+            resource = asyncPainterResource(data = "https://raw.githubusercontent.com/paparym/SweetNothing/master/shared/src/commonMain/resources/MR/images/symbol_bg%401x.png"),
             contentDescription = null,
             contentScale = ContentScale.FillBounds,
+            animationSpec = tween(durationMillis = 500),
+            onLoading = { Box(modifier = Modifier.background(Color.White).fillMaxSize()) },
         )
+//        Image(
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .offset { IntOffset(y = offset.value.toInt(), x = 0) },
+//            painter = painterResource(asset),
+//            contentDescription = null,
+//            contentScale = ContentScale.FillBounds,
+//        )
     }
 }
